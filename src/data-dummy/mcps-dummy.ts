@@ -1,0 +1,48 @@
+import type { McpEndpoint } from "@/types/standard";
+
+export const dummyMcps: McpEndpoint[] = [
+  {
+    id: "mcp-1",
+    name: "My Next.js Clean MCP",
+    standardId: "std-nextjs-clean-1",
+    standardName: "My Next.js Clean Standard",
+    endpoint: "https://cleanforge.run.app/mcp/user-1/std-nextjs-clean-1/sse",
+    token: "mcp_tok_abc123xyz",
+    status: "active",
+    usageCount: 42,
+    createdAt: "2026-09-02T14:30:00Z",
+  },
+  {
+    id: "mcp-2",
+    name: "E-Commerce MCP",
+    standardId: "std-ecommerce-modular",
+    standardName: "E-Commerce Modular",
+    endpoint: "https://cleanforge.run.app/mcp/user-1/std-ecommerce-modular/sse",
+    token: "mcp_tok_ecom456",
+    status: "active",
+    usageCount: 28,
+    createdAt: "2026-09-01T11:00:00Z",
+  },
+  {
+    id: "mcp-3",
+    name: "NestJS API MCP",
+    standardId: "std-nestjs-modular",
+    standardName: "NestJS Modular API",
+    endpoint: "https://cleanforge.run.app/mcp/user-1/std-nestjs-modular/sse",
+    token: "mcp_tok_nest789",
+    status: "inactive",
+    usageCount: 5,
+    createdAt: "2026-08-30T16:00:00Z",
+  },
+  {
+    id: "mcp-4",
+    name: "SaaS Starter MCP",
+    standardId: "std-saas-starter",
+    standardName: "SaaS Starter Kit",
+    endpoint: "https://cleanforge.run.app/mcp/user-1/std-saas-starter/sse",
+    token: "mcp_tok_saas202",
+    status: "active",
+    usageCount: 17,
+    createdAt: "2026-09-02T08:00:00Z",
+  },
+];
