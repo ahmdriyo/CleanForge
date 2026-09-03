@@ -74,11 +74,13 @@ export const VisualTree = ({
           <span className="bg-slate-100 text-slate-600 rounded-full text-[11px] px-2 py-0.5 font-medium border">kebab-case</span>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="rounded-full bg-white/40 border-white/50 text-xs h-7">
-              <Plus className="w-3 h-3" /> Add Folder/File
-            </Button>
-          </DialogTrigger>
+          <DialogTrigger
+            render={
+              <Button variant="outline" size="sm" className="rounded-full bg-white/40 border-white/50 text-xs h-7">
+                <Plus className="w-3 h-3" /> Add Folder/File
+              </Button>
+            }
+          />
           <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/50 rounded-[20px]">
             <DialogHeader>
               <DialogTitle>Add Folder/File</DialogTitle>

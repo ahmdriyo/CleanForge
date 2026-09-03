@@ -29,11 +29,13 @@ export const Header = () => {
     <header className="sticky top-0 z-30 bg-white/40 backdrop-blur-xl border-b border-white/40">
       <div className="flex items-center gap-4 px-4 lg:px-8 py-3">
         <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="lg:hidden rounded-full bg-white/50 border border-white/40">
-              <Menu className="w-5 h-5" />
-            </Button>
-          </SheetTrigger>
+          <SheetTrigger
+            render={
+              <Button variant="ghost" size="icon" className="lg:hidden rounded-full bg-white/50 border border-white/40">
+                <Menu className="w-5 h-5" />
+              </Button>
+            }
+          />
           <SheetContent side="left" className="p-0 w-[280px] bg-[#fbfbff] border-white/40">
             <MobileSidebar />
           </SheetContent>

@@ -28,11 +28,13 @@ export const GenerateMcpSection = ({ standardName }: { standardName: string }) =
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button size="sm" className="rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-md">
-          <Plug className="w-4 h-4" /> Generate MCP
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button size="sm" className="rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-md">
+            <Plug className="w-4 h-4" /> Generate MCP
+          </Button>
+        }
+      />
       <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/50 rounded-[24px] max-w-[560px] max-h-[85vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Generate Private MCP Endpoint</DialogTitle>

@@ -1,11 +1,21 @@
-// Firebase Admin — uses GOOGLE_APPLICATION_CREDENTIALS env
-import admin from "firebase-admin";
+import { initializeApp, getApps, cert } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
+if (!getApps().length) {
+  const serviceAccount = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  if (serviceAccount) {
+    try {
+      const credentials = JSON.parse(serviceAccount);
+      initializeApp({ credential: cert(credentials) });
+    } catch {
+      // fallback to applicationDefault (gcloud ambient)
+      initializeApp();
+    }
+  } else {
+    initializeApp();
+  }
 }
 
-export const adminAuth = admin.auth();
-export const adminDb = admin.firestore();
+export const adminAuth = getAuth();
+export const adminDb = getFirestore();

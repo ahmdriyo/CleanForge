@@ -18,7 +18,7 @@ export const ForgePage = ({ standardId, standardName }: { standardId: string; st
 
       {/* Desktop: 3 panels resizable */}
       <div className="hidden lg:block flex-1">
-        <ResizablePanelGroup direction="horizontal" className="h-full rounded-[20px]">
+        <ResizablePanelGroup orientation="horizontal" className="h-full rounded-[20px]">
           <ResizablePanel defaultSize={30} minSize={20}>
             <ChatPanel onApply={() => console.log("apply", standardId)} />
           </ResizablePanel>
