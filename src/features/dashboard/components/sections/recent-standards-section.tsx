@@ -14,7 +14,7 @@ export const RecentStandardsSection = () => {
     return (
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-[280px] rounded-[20px] bg-white/30" />
+          <Skeleton key={i} className="h-[280px] rounded-[20px] bg-white/55" />
         ))}
       </div>
     );
@@ -24,8 +24,8 @@ export const RecentStandardsSection = () => {
 
   if (recent.length === 0) {
     return (
-      <div className="bg-white/30 backdrop-blur-xl border border-dashed border-white/50 rounded-[24px] p-12 text-center">
-        <div className="w-16 h-16 bg-white/60 rounded-3xl border border-white/50 flex items-center justify-center mx-auto mb-4">
+      <div className="bg-white/55 backdrop-blur-xl border border-dashed border-white/70 rounded-[24px] p-12 text-center">
+        <div className="w-16 h-16 bg-white/80 rounded-3xl border border-white/70 flex items-center justify-center mx-auto mb-4">
           <FolderOpen className="w-8 h-8 text-violet-600" />
         </div>
         <h3 className="font-semibold text-slate-900">No standards yet</h3>
@@ -35,7 +35,7 @@ export const RecentStandardsSection = () => {
             <Button className="rounded-full bg-violet-600 hover:bg-violet-700 text-white">Start from Scratch</Button>
           </Link>
           <Link href="/templates">
-            <Button variant="outline" className="rounded-full bg-white/50 border-white/50">
+            <Button variant="outline" className="rounded-full bg-white/75 border-white/70">
               Browse Templates
             </Button>
           </Link>

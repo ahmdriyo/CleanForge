@@ -22,7 +22,7 @@ export const StandardCard = ({ standard }: { standard: Standard }) => {
       : "bg-cyan-600 text-white";
 
   return (
-    <div className="bg-white/50 backdrop-blur-xl border border-white/40 rounded-[20px] p-5 hover:bg-white/60 hover:border-white/60 hover:shadow-[0_12px_40px_rgba(31,38,135,0.1)] transition-all duration-300 flex flex-col">
+    <div className="bg-white/75 backdrop-blur-xl border border-white/60 rounded-[20px] p-5 hover:bg-white/85 hover:border-white/70 hover:shadow-[0_12px_40px_rgba(59,130,246,0.15)] transition-all duration-300 flex flex-col shadow-[0_8px_32px_rgba(59,130,246,0.08)]">
       <div className="flex items-center gap-2 mb-3">
         <Badge className={`${frameworkColor} rounded-full text-[11px] px-2.5 py-0.5 font-medium border-0`}>
           {standard.framework === "nextjs" ? "Next.js 15" : standard.framework === "nestjs" ? "NestJS" : "Go"}
@@ -39,7 +39,7 @@ export const StandardCard = ({ standard }: { standard: Standard }) => {
       <h3 className="font-semibold tracking-tight text-slate-900 text-[15px] leading-tight mb-1">{standard.name}</h3>
       <p className="text-sm text-slate-500 leading-relaxed line-clamp-2 mb-3">{standard.description}</p>
 
-      <div className="bg-white/60 backdrop-blur border border-white/50 rounded-xl p-3 mb-4">
+      <div className="bg-white/70 backdrop-blur border border-white/60 rounded-xl p-3 mb-4">
         <div className="flex items-center gap-2 text-[11px] font-medium text-slate-400 uppercase tracking-widest mb-2">
           <Layers className="w-3 h-3" /> Project Structure
         </div>

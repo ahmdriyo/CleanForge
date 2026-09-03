@@ -24,7 +24,7 @@ export const StandardsGridSection = () => {
     return (
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-[280px] rounded-[20px] bg-white/30" />
+          <Skeleton key={i} className="h-[280px] rounded-[20px] bg-white/55" />
         ))}
       </div>
     );
@@ -34,7 +34,7 @@ export const StandardsGridSection = () => {
     <div>
       <StandardsHeaderSection onSearch={setSearch} onFilter={setFilter} />
       {filtered.length === 0 ? (
-        <div className="bg-white/30 backdrop-blur-xl border border-dashed border-white/50 rounded-[24px] p-12 text-center">
+        <div className="bg-white/55 backdrop-blur-xl border border-dashed border-white/70 rounded-[24px] p-12 text-center">
           <p className="font-medium text-slate-900">No standards found</p>
           <p className="text-sm text-slate-500 mt-1">Try adjusting your search or filter</p>
           <button onClick={() => { setSearch(""); setFilter("all"); }} className="mt-4 text-sm text-violet-600 hover:text-violet-700 font-medium">

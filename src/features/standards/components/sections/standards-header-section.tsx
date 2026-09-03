@@ -31,11 +31,11 @@ export const StandardsHeaderSection = ({
               setSearch(e.target.value);
               onSearch(e.target.value);
             }}
-            className="pl-9 bg-white/60 backdrop-blur border-white/40 rounded-full w-[220px] focus-visible:ring-violet-500"
+            className="pl-9 bg-white/80 backdrop-blur border-white/60 rounded-full w-[220px] focus-visible:ring-violet-500"
           />
         </div>
         <Select onValueChange={(v) => onFilter(v ?? "all")} defaultValue="all">
-          <SelectTrigger className="w-[160px] bg-white/60 backdrop-blur border-white/40 rounded-full">
+          <SelectTrigger className="w-[160px] bg-white/80 backdrop-blur border-white/60 rounded-full">
             <SelectValue placeholder="Filter by Framework" />
           </SelectTrigger>
           <SelectContent>

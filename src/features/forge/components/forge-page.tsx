@@ -36,7 +36,7 @@ export const ForgePage = ({ standardId, standardName }: { standardId: string; st
       {/* Mobile: Tabs */}
       <div className="lg:hidden flex-1 flex flex-col">
         <Tabs defaultValue="chat" className="flex-1 flex flex-col">
-          <TabsList className="bg-white/40 backdrop-blur rounded-full p-1 w-fit mx-auto">
+          <TabsList className="bg-white/65 backdrop-blur rounded-full p-1 w-fit mx-auto">
             <TabsTrigger value="chat" className="rounded-full data-[state=active]:bg-violet-600 data-[state=active]:text-white">
               Chat
             </TabsTrigger>

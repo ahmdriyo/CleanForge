@@ -35,7 +35,7 @@ export const GenerateMcpSection = ({ standardName }: { standardName: string }) =
           </Button>
         }
       />
-      <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/50 rounded-[24px] max-w-[560px] max-h-[85vh] overflow-auto">
+      <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/70 rounded-[24px] max-w-[560px] max-h-[85vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Generate Private MCP Endpoint</DialogTitle>
         </DialogHeader>
@@ -46,7 +46,7 @@ export const GenerateMcpSection = ({ standardName }: { standardName: string }) =
           </div>
           <div>
             <Label className="text-xs uppercase tracking-widest text-slate-400">API Key (Optional)</Label>
-            <Input type="password" placeholder="sk-..." className="bg-white/60 rounded-xl mt-1" />
+            <Input type="password" placeholder="sk-..." className="bg-white/80 rounded-xl mt-1" />
             <p className="text-xs text-slate-400 mt-1">Stored securely via Secret Manager. Leave empty if not needed.</p>
           </div>
           {!generated ? (
@@ -69,7 +69,7 @@ export const GenerateMcpSection = ({ standardName }: { standardName: string }) =
                   <span className="bg-violet-50 text-violet-700 border border-violet-200 rounded-full text-xs px-2.5 py-1">Active</span>
                 </div>
               </div>
-              <div className="bg-white/60 border border-white/50 rounded-xl p-3">
+              <div className="bg-white/80 border border-white/70 rounded-xl p-3">
                 <div className="text-sm font-medium text-slate-900 mb-2">How to Connect</div>
                 <p className="text-xs text-slate-500 mb-2">Cursor: Settings → MCP → Add server → Paste URL</p>
                 <pre className="bg-slate-900 rounded-lg p-3 font-mono text-xs text-slate-300 overflow-auto">{`{\n  "mcpServers": {\n    "cleanforge": {\n      "url": "${endpoint}?token=YOUR_TOKEN"\n    }\n  }\n}`}</pre>

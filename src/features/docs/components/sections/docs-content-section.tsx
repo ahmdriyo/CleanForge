@@ -18,11 +18,11 @@ export const DocsContentSection = () => {
 
   return (
     <div className="grid lg:grid-cols-[240px_1fr] gap-6">
-      <div className="bg-white/40 backdrop-blur-xl border border-white/40 rounded-[16px] p-4 h-fit sticky top-20">
+      <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-[16px] p-4 h-fit sticky top-20">
         <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">On this page</div>
         <div className="space-y-1">
           {docsSections.map((sec) => (
-            <a key={sec.id} href={`#${sec.id}`} className="block text-sm text-slate-600 hover:text-violet-700 py-1.5 px-3 rounded-full hover:bg-white/40">
+            <a key={sec.id} href={`#${sec.id}`} className="block text-sm text-slate-600 hover:text-violet-700 py-1.5 px-3 rounded-full hover:bg-white/65">
               {sec.title}
             </a>
           ))}
@@ -31,7 +31,7 @@ export const DocsContentSection = () => {
 
       <div className="space-y-4">
         {docsSections.map((sec) => (
-          <div key={sec.id} id={sec.id} className="bg-white/50 backdrop-blur-xl border border-white/40 rounded-[20px] p-6 scroll-mt-20">
+          <div key={sec.id} id={sec.id} className="bg-white/75 backdrop-blur-xl border border-white/60 rounded-[20px] p-6 scroll-mt-20">
             <h3 className="font-semibold text-slate-900 mb-2">{sec.title}</h3>
             <p className="text-sm text-slate-600 leading-relaxed mb-3">{sec.content}</p>
             {sec.code && (

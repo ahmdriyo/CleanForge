@@ -69,8 +69,8 @@ export const Sidebar = () => {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden lg:flex w-[280px] shrink-0 flex-col bg-white/30 backdrop-blur-xl border-r border-white/40 h-screen sticky top-0 overflow-hidden">
-      <div className="px-6 py-6 border-b border-white/20">
+    <aside className="hidden lg:flex w-[280px] shrink-0 flex-col bg-white/55 backdrop-blur-2xl border-r border-white/60 h-screen sticky top-0 overflow-hidden shadow-[4px_0_32px_rgba(59,130,246,0.08)]">
+      <div className="px-6 py-5 border-b border-white/60">
         <Link href="/dashboard" className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
             <Hammer className="w-5 h-5 text-white" />
@@ -82,7 +82,7 @@ export const Sidebar = () => {
         </Link>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-7 scrollbar-thin">
+      <div className="flex-1 overflow-hidden px-4 py-5 space-y-5">
         {navGroups.map((group) => (
           <div key={group.title} className="space-y-2">
             <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 px-3">
@@ -99,10 +99,10 @@ export const Sidebar = () => {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-full text-sm transition-all duration-200",
+                      "flex items-center gap-2.5 px-3 py-2 rounded-full text-[13px] transition-all duration-200",
                       isActive
                         ? "bg-violet-100 text-violet-900 font-medium shadow-sm border border-violet-200/50"
-                        : "text-slate-500 hover:text-slate-900 hover:bg-white/40"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-white/75"
                     )}
                   >
                     <item.icon className="w-[18px] h-[18px] shrink-0" />
@@ -120,8 +120,8 @@ export const Sidebar = () => {
         ))}
       </div>
 
-      <div className="p-4 border-t border-white/20">
-        <div className="flex items-center gap-3 px-3 py-3 rounded-2xl bg-white/40 backdrop-blur border border-white/40">
+      <div className="p-4 border-t border-white/60">
+        <div className="flex items-center gap-3 px-3 py-3 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/60 shadow-sm">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold">
             A
           </div>
@@ -165,7 +165,7 @@ export const MobileSidebar = () => {
                       "flex items-center gap-3 px-3 py-2.5 rounded-full text-sm",
                       isActive
                         ? "bg-violet-100 text-violet-900 font-medium border border-violet-200/50"
-                        : "text-slate-500 hover:text-slate-900 hover:bg-white/40"
+                        : "text-slate-500 hover:text-slate-900 hover:bg-white/65"
                     )}
                   >
                     <item.icon className="w-[18px] h-[18px]" />

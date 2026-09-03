@@ -26,7 +26,7 @@ export const FolderInspector = ({ node }: { node: FolderNode | null }) => {
 
   if (!node) {
     return (
-      <div className="bg-white/40 backdrop-blur-xl border border-white/40 rounded-[20px] p-4 h-full flex items-center justify-center">
+      <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-[20px] p-4 h-full flex items-center justify-center">
         <p className="text-sm text-slate-400 text-center py-12">Select a folder to inspect</p>
       </div>
     );
@@ -52,21 +52,21 @@ export const FolderInspector = ({ node }: { node: FolderNode | null }) => {
   };
 
   return (
-    <div className="bg-white/40 backdrop-blur-xl border border-white/40 rounded-[20px] p-4 h-full overflow-auto space-y-5">
+    <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-[20px] p-4 h-full overflow-auto space-y-5">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-slate-900 text-sm">Inspector</h3>
-        <span className="text-xs font-mono text-slate-500 bg-white/50 rounded-full px-2.5 py-1 border border-white/30">{node.name}</span>
+        <span className="text-xs font-mono text-slate-500 bg-white/75 rounded-full px-2.5 py-1 border border-white/70">{node.name}</span>
       </div>
 
       <div className="space-y-2">
         <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Rules</Label>
-        <Textarea value={rules} onChange={(e) => setRules(e.target.value)} placeholder="Each feature in its own folder..." className="bg-white/60 backdrop-blur border-white/50 rounded-xl min-h-[80px] focus-visible:ring-violet-500" />
+        <Textarea value={rules} onChange={(e) => setRules(e.target.value)} placeholder="Each feature in its own folder..." className="bg-white/80 backdrop-blur border-white/70 rounded-xl min-h-[80px] focus-visible:ring-violet-500" />
       </div>
 
       <div className="space-y-2">
         <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Naming Convention</Label>
         <div className="flex gap-2">
-          <Input value={naming} onChange={(e) => setNaming(e.target.value)} className="bg-white/60 rounded-xl" placeholder="kebab-case" />
+          <Input value={naming} onChange={(e) => setNaming(e.target.value)} className="bg-white/80 rounded-xl" placeholder="kebab-case" />
           <span className="bg-violet-100 text-violet-700 rounded-full text-xs px-3 py-2 border border-violet-200 shrink-0">kebab-case</span>
         </div>
       </div>
@@ -90,14 +90,14 @@ export const FolderInspector = ({ node }: { node: FolderNode | null }) => {
 
       <div className="space-y-2">
         <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Description</Label>
-        <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short description" className="bg-white/60 rounded-xl" />
+        <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short description" className="bg-white/80 rounded-xl" />
       </div>
 
       <div className="flex gap-2 pt-2">
         <Button onClick={handleSave} className="flex-1 rounded-full bg-violet-600 hover:bg-violet-700">
           Save Inspector
         </Button>
-        <Button variant="outline" className="rounded-full bg-white/50 border-white/50" onClick={() => toast("Reset (dummy)")}>
+        <Button variant="outline" className="rounded-full bg-white/75 border-white/70" onClick={() => toast("Reset (dummy)")}>
           Reset
         </Button>
       </div>

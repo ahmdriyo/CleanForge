@@ -21,7 +21,7 @@ export const McpsListSection = () => {
 
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white/30 backdrop-blur-xl border border-dashed border-white/50 rounded-[24px] p-12 text-center">
+      <div className="bg-white/55 backdrop-blur-xl border border-dashed border-white/70 rounded-[24px] p-12 text-center">
         <p className="font-medium text-slate-900">No MCPs yet — Generate from Forge Studio</p>
         <a href="/forge/new" className="inline-flex mt-4 rounded-full bg-violet-600 text-white px-6 py-2.5 text-sm font-medium">Go to Forge</a>
       </div>
@@ -31,7 +31,7 @@ export const McpsListSection = () => {
   return (
     <div className="space-y-4">
       {data.map((mcp) => (
-        <div key={mcp.id} className="bg-white/50 backdrop-blur-xl border border-white/40 rounded-[20px] p-5 hover:bg-white/60 transition flex flex-col md:flex-row md:items-center gap-4">
+        <div key={mcp.id} className="bg-white/75 backdrop-blur-xl border border-white/60 rounded-[20px] p-5 hover:bg-white/80 transition flex flex-col md:flex-row md:items-center gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <Plug className="w-4 h-4 text-violet-600" />
@@ -45,7 +45,7 @@ export const McpsListSection = () => {
             <div className="mt-2 text-xs text-slate-400">Usage: {mcp.usageCount} calls • Created {new Date(mcp.createdAt).toLocaleDateString()}</div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Button variant="outline" size="sm" className="rounded-full bg-white/50 border-white/50" onClick={() => handleCopy(mcp.endpoint, mcp.token, mcp.id)}>
+            <Button variant="outline" size="sm" className="rounded-full bg-white/75 border-white/70" onClick={() => handleCopy(mcp.endpoint, mcp.token, mcp.id)}>
               {copied === mcp.id ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
               {copied === mcp.id ? "Copied" : "Copy Link"}
             </Button>

@@ -26,8 +26,8 @@ export const ChatPanel = ({ onApply }: { onApply?: () => void }) => {
   };
 
   return (
-    <div className="bg-white/40 backdrop-blur-xl border border-white/40 rounded-[20px] flex flex-col h-full overflow-hidden">
-      <div className="px-4 py-3 border-b border-white/30 flex items-center justify-between">
+    <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-[20px] flex flex-col h-full overflow-hidden">
+      <div className="px-4 py-3 border-b border-white/70 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-white" />
@@ -43,7 +43,7 @@ export const ChatPanel = ({ onApply }: { onApply?: () => void }) => {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((m) => (
           <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] rounded-2xl p-3 text-sm ${m.role === "user" ? "bg-violet-600 text-white rounded-br-sm ml-8" : "bg-white/70 backdrop-blur border border-white/50 rounded-bl-sm mr-8 text-slate-700"}`}>
+            <div className={`max-w-[85%] rounded-2xl p-3 text-sm ${m.role === "user" ? "bg-violet-600 text-white rounded-br-sm ml-8" : "bg-white/70 backdrop-blur border border-white/70 rounded-bl-sm mr-8 text-slate-700"}`}>
               <div className="whitespace-pre-wrap">{m.content}</div>
               {m.hasApply && m.role === "assistant" && (
                 <Button
@@ -62,8 +62,8 @@ export const ChatPanel = ({ onApply }: { onApply?: () => void }) => {
         ))}
       </div>
 
-      <div className="p-3 border-t border-white/30">
-        <div className="bg-white/60 backdrop-blur border border-white/50 rounded-full px-2 py-1.5 flex gap-2">
+      <div className="p-3 border-t border-white/70">
+        <div className="bg-white/80 backdrop-blur border border-white/70 rounded-full px-2 py-1.5 flex gap-2">
           <Input
             placeholder="Ask Gemini about your structure..."
             value={input}

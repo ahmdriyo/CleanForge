@@ -26,17 +26,17 @@ export const Header = () => {
   const breadcrumb = breadcrumbMap[pathname || ""] || breadcrumbMap["/" + pathname?.split("/")[1]] || "Dashboard";
 
   return (
-    <header className="sticky top-0 z-30 bg-white/40 backdrop-blur-xl border-b border-white/40">
+    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-2xl border-b border-white/70 shadow-sm">
       <div className="flex items-center gap-4 px-4 lg:px-8 py-3">
         <Sheet>
           <SheetTrigger
             render={
-              <Button variant="ghost" size="icon" className="lg:hidden rounded-full bg-white/50 border border-white/40">
+              <Button variant="ghost" size="icon" className="lg:hidden rounded-full bg-white/75 border border-white/60">
                 <Menu className="w-5 h-5" />
               </Button>
             }
           />
-          <SheetContent side="left" className="p-0 w-[280px] bg-[#fbfbff] border-white/40">
+          <SheetContent side="left" className="p-0 w-[280px] bg-[#fbfbff] border-white/60">
             <MobileSidebar />
           </SheetContent>
         </Sheet>
@@ -48,10 +48,10 @@ export const Header = () => {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="rounded-full bg-white/50 backdrop-blur border border-white/40 text-slate-500 hover:text-slate-900 hover:bg-white/70">
+          <Button variant="ghost" size="icon" className="rounded-full bg-white/75 backdrop-blur border border-white/60 text-slate-500 hover:text-slate-900 hover:bg-white/70">
             <Search className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="rounded-full bg-white/50 backdrop-blur border border-white/40 text-slate-500 hover:text-slate-900 hover:bg-white/70">
+          <Button variant="ghost" size="icon" className="rounded-full bg-white/75 backdrop-blur border border-white/60 text-slate-500 hover:text-slate-900 hover:bg-white/70">
             <Bell className="w-4 h-4" />
           </Button>
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-xs font-semibold shadow-md">

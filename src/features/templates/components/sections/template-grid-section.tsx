@@ -29,16 +29,16 @@ export const TemplateGridSection = () => {
       {data?.map((tpl) => {
         const Icon = iconMap[tpl.icon] || Layers;
         return (
-          <div key={tpl.id} className="bg-gradient-to-br from-white/60 to-white/20 backdrop-blur-xl border border-white/40 rounded-[20px] p-5 hover:bg-white/70 hover:shadow-lg transition flex flex-col">
+          <div key={tpl.id} className="bg-gradient-to-br from-white/60 to-white/20 backdrop-blur-xl border border-white/60 rounded-[20px] p-5 hover:bg-white/70 hover:shadow-lg transition flex flex-col">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-white shadow-sm border border-white/50 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-2xl bg-white shadow-sm border border-white/70 flex items-center justify-center">
                 <Icon className="w-5 h-5 text-slate-900" />
               </div>
               <Badge className="bg-slate-900 text-white rounded-full text-xs">{tpl.framework}</Badge>
             </div>
             <h3 className="font-semibold text-slate-900">{tpl.name}</h3>
             <p className="text-sm text-slate-500 mt-1 line-clamp-2">{tpl.description}</p>
-            <div className="mt-3 bg-white/60 rounded-xl border border-white/50 p-3">
+            <div className="mt-3 bg-white/80 rounded-xl border border-white/70 p-3">
               <div className="text-[11px] uppercase tracking-widest text-slate-400 font-medium mb-1">Structure Preview</div>
               <div className="font-mono text-xs text-slate-600">{tpl.structurePreview}</div>
               <div className="text-xs text-slate-400 mt-2">{tpl.rules}</div>

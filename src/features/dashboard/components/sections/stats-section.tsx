@@ -11,7 +11,7 @@ export const StatsSection = () => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-[110px] rounded-[20px] bg-white/30" />
+          <Skeleton key={i} className="h-[110px] rounded-[20px] bg-white/55" />
         ))}
       </div>
     );
@@ -27,7 +27,7 @@ export const StatsSection = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {cards.map((card) => (
-        <div key={card.label} className="bg-gradient-to-br from-white/60 to-white/20 backdrop-blur-xl border border-white/40 rounded-[20px] p-5 shadow-[0_8px_32px_rgba(31,38,135,0.07)]">
+        <div key={card.label} className="bg-gradient-to-br from-white/80 to-white/50 backdrop-blur-xl border border-white/60 rounded-[20px] p-5 shadow-[0_8px_32px_rgba(59,130,246,0.12),inset_0_1px_0_0_rgba(255,255,255,0.8)]">
           <div className="flex items-center justify-between mb-3">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${card.color}`}>
               <card.icon className="w-5 h-5" />
