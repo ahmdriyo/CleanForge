@@ -13,11 +13,11 @@ export const ForgePage = ({ standardId, standardName }: { standardId: string; st
   const [selected, setSelected] = useState<FolderNode | null>(null);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)]">
+    <div className="flex flex-col flex-1 min-h-0">
       <ForgeHeaderSection standardName={standardName} />
 
       {/* Desktop: 3 panels resizable */}
-      <div className="hidden lg:block flex-1">
+      <div className="hidden lg:block flex-1 min-h-0">
         <ResizablePanelGroup orientation="horizontal" className="h-full rounded-[20px]">
           <ResizablePanel defaultSize={30} minSize={20}>
             <ChatPanel onApply={() => console.log("apply", standardId)} />
