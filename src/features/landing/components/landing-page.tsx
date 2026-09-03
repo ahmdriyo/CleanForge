@@ -8,13 +8,15 @@ import { HowItWorksSection } from "./sections/how-it-works-section";
 import { TechStackSection } from "./sections/tech-stack-section";
 import { CtaSection } from "./sections/cta-section";
 import { Footer } from "./footer";
+import { LandingBackground } from "./landing-background";
 
 export const LandingPage = () => {
   return (
-    <div className="min-h-screen bg-[#fbfbff] scroll-smooth">
+    <div className="min-h-screen bg-[#fbfbff] scroll-smooth relative">
       <style>{`html{scroll-behavior:smooth}`}</style>
+      <LandingBackground />
       <Navbar />
-      <main>
+      <main className="relative">
         <HeroSection />
         <ProblemSection />
         <SolutionSection />

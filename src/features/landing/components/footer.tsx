@@ -1,9 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import { Layers } from "lucide-react";
+import { motion } from "framer-motion";
 
 export const Footer = () => {
   return (
-    <footer className="bg-[#fbfbff] border-t border-violet-100 py-12">
+    <motion.footer
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      className="bg-[#fbfbff] border-t border-violet-100 py-12"
+    >
       <div className="max-w-[1280px] mx-auto px-4 lg:px-8 flex flex-col md:flex-row gap-8 justify-between">
         <div>
           <div className="flex items-center gap-2">
@@ -31,6 +39,6 @@ export const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
+    </motion.footer>
   );
 };

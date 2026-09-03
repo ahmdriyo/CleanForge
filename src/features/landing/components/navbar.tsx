@@ -4,7 +4,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Layers, Menu } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -18,7 +19,12 @@ export const Navbar = () => {
 
   // smooth scroll handled by CSS, but close sheet on click
   return (
-    <header className="sticky top-0 z-50 bg-[#fbfbff]/80 backdrop-blur-md border-b border-violet-100">
+    <motion.header
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="sticky top-0 z-50 bg-[#fbfbff]/80 backdrop-blur-md border-b border-violet-100"
+    >
       <div className="max-w-[1280px] mx-auto px-4 lg:px-8 h-[64px] flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-950 to-indigo-900 flex items-center justify-center">
@@ -79,6 +85,6 @@ export const Navbar = () => {
           </Sheet>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 };
