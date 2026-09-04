@@ -26,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { StandardService } from "@/services/standard.service";
@@ -70,14 +71,22 @@ export const ForgePage = ({
   const queryClient = useQueryClient();
   const isNew = !standardId || standardId === "new";
 
-  const { data: standard } = useStandardById(isNew ? "" : standardId);
-
-  const [currentName, setCurrentName] = useState(standardName);
-  const [currentFramework, setCurrentFramework] = useState("nextjs");
-  const [currentTree, setCurrentTree] = useState<FolderNode>(
-    POPULAR_FRAMEWORKS[0].initialTree,
+  const { data: standard, isLoading } = useStandardById(
+    isNew ? "" : standardId,
   );
-  const [selected, setSelected] = useState<FolderNode | null>(null);
+
+  const [currentName, setCurrentName] = useState(
+    standard?.name || standardName || (isNew ? "My New Standard" : ""),
+  );
+  const [currentFramework, setCurrentFramework] = useState(
+    standard?.framework || "nextjs",
+  );
+  const [currentTree, setCurrentTree] = useState<FolderNode>(
+    standard?.folderStructure || POPULAR_FRAMEWORKS[0].initialTree,
+  );
+  const [selected, setSelected] = useState<FolderNode | null>(
+    standard?.folderStructure || POPULAR_FRAMEWORKS[0].initialTree,
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [frameworkConfirmModalOpen, setFrameworkConfirmModalOpen] =
@@ -88,17 +97,19 @@ export const ForgePage = ({
   } | null>(null);
 
   // Sync state with fetched standard during render without effect cascade
-  const [prevStandard, setPrevStandard] = useState(standard);
-  if (standard !== prevStandard) {
-    setPrevStandard(standard);
-    if (standard) {
+  const [syncedKey, setSyncedKey] = useState<string | null>(
+    standard ? `${standard.id}-${standard.updatedAt || ""}` : null,
+  );
+
+  if (standard) {
+    const currentKey = `${standard.id}-${standard.updatedAt || ""}`;
+    if (currentKey !== syncedKey) {
+      setSyncedKey(currentKey);
       if (standard.name) setCurrentName(standard.name);
       if (standard.framework) setCurrentFramework(standard.framework);
       if (standard.folderStructure) {
         setCurrentTree(standard.folderStructure);
-        if (!selected) {
-          setSelected(standard.folderStructure);
-        }
+        setSelected(standard.folderStructure);
       }
     }
   }
@@ -364,6 +375,48 @@ export const ForgePage = ({
         minute: "2-digit",
       })
     : null;
+
+  if (!isNew && isLoading && !standard) {
+    return (
+      <div className="flex flex-col flex-1 h-[calc(100vh-8.5rem)] min-h-145 items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl p-8 flex flex-col items-center gap-3 shadow-lg">
+          <Loader2 className="w-8 h-8 text-violet-600 animate-spin" />
+          <h3 className="font-semibold text-slate-900 text-sm">
+            Loading Project Standard...
+          </h3>
+          <p className="text-xs text-slate-500">
+            Fetching latest project architecture from server
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isNew && !isLoading && !standard) {
+    return (
+      <div className="flex flex-col flex-1 h-[calc(100vh-8.5rem)] min-h-145 items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl p-8 flex flex-col items-center gap-3 shadow-lg text-center max-w-sm">
+          <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-lg mx-auto">
+            !
+          </div>
+          <h3 className="font-semibold text-slate-900 text-sm">
+            Standard Not Found
+          </h3>
+          <p className="text-xs text-slate-500">
+            This standard may have been deleted or you do not have permission to
+            view it.
+          </p>
+          <Button
+            size="sm"
+            className="rounded-full bg-violet-600 hover:bg-violet-700 text-white text-xs mt-2"
+            onClick={() => router.push("/standards")}
+          >
+            Back to Standards
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col flex-1 h-[calc(100vh-8.5rem)] min-h-145">

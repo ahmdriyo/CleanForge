@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import type { Standard, FolderNode } from "@/types/standard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, Layers, Folder, FileCode } from "lucide-react";
+import { Clock, Layers, Folder, FileCode, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { STANDARD_QUERY_KEYS } from "@/hooks/use-standards";
 import { POPULAR_FRAMEWORKS } from "@/const/framework-templates";
 
 const getStructurePreviewPaths = (
@@ -65,6 +69,10 @@ const formatRelativeTime = (dateString?: string): string => {
 };
 
 export const StandardCard = ({ standard }: { standard: Standard }) => {
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
   const statusColor =
     standard.mcpStatus === "active"
       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -79,6 +87,25 @@ export const StandardCard = ({ standard }: { standard: Standard }) => {
   );
   const displayName = frameworkInfo ? frameworkInfo.name : standard.framework;
   const structurePaths = getStructurePreviewPaths(standard.folderStructure);
+
+  const handleOpenForge = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      // Preload current standard data into detail cache so Forge opens instantly with real name
+      queryClient.setQueryData(STANDARD_QUERY_KEYS.detail(standard.id), {
+        success: true,
+        data: standard,
+      });
+      // Invalidate to guarantee TanStack Query hits the API for the latest server state
+      queryClient.invalidateQueries({
+        queryKey: STANDARD_QUERY_KEYS.detail(standard.id),
+      });
+      router.push(`/forge/${standard.id}`);
+    } catch {
+      router.push(`/forge/${standard.id}`);
+    }
+  };
 
   return (
     <div className="bg-white/75 backdrop-blur-xl border border-white/60 rounded-[20px] p-5 hover:bg-white/85 hover:border-white/70 hover:shadow-[0_12px_40px_rgba(59,130,246,0.15)] transition-all duration-300 flex flex-col shadow-[0_8px_32px_rgba(59,130,246,0.08)]">
@@ -140,12 +167,16 @@ export const StandardCard = ({ standard }: { standard: Standard }) => {
           <Clock className="w-3.5 h-3.5" /> Updated{" "}
           {formatRelativeTime(standard.updatedAt)}
         </span>
-        <Link href={`/forge/${standard.id}`}>
+        <Link href={`/forge/${standard.id}`} onClick={handleOpenForge}>
           <Button
             size="sm"
-            className="rounded-full bg-violet-600 hover:bg-violet-700 text-white text-xs px-4 h-8"
+            disabled={isLoading}
+            className="rounded-full bg-violet-600 hover:bg-violet-700 text-white text-xs px-4 h-8 cursor-pointer"
           >
-            Open in Forge
+            {isLoading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+            ) : null}
+            {isLoading ? "Opening..." : "Open in Forge"}
           </Button>
         </Link>
       </div>

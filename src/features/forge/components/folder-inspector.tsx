@@ -271,9 +271,6 @@ export const FolderInspector = ({
             <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
               Example Code
             </Label>
-            <span className="text-[10px] text-slate-400 font-mono bg-white/70 px-1.5 py-0.5 rounded border border-white/60">
-              editable
-            </span>
           </div>
           <div className="flex gap-1">
             <Button
@@ -323,7 +320,7 @@ export const FolderInspector = ({
         <Input
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Short description of this directory or file"
+          placeholder="Short description of this directory"
           className="bg-white/80 rounded-xl text-xs"
         />
       </div>
