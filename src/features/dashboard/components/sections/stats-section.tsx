@@ -18,9 +18,9 @@ export const StatsSection = () => {
   }
 
   const cards = [
-    { label: "Total Standards", value: data.totalStandards, sub: data.trends.standards, icon: Layers, color: "text-violet-600 bg-violet-50" },
-    { label: "Active MCPs", value: data.activeMcps, sub: data.trends.mcps, icon: Plug, color: "text-emerald-600 bg-emerald-50" },
-    { label: "Templates Used", value: data.templatesUsed, sub: data.trends.templates, icon: LayoutTemplate, color: "text-indigo-600 bg-indigo-50" },
+    { label: "Total Standards", value: data.totalStandards, sub: data.trends?.standards ?? "+0 this week", icon: Layers, color: "text-violet-600 bg-violet-50" },
+    { label: "Active MCPs", value: data.activeMcps, sub: data.trends?.mcps ?? "+0 this week", icon: Plug, color: "text-emerald-600 bg-emerald-50" },
+    { label: "Templates Used", value: data.templatesUsed, sub: data.trends?.templates ?? "+0", icon: LayoutTemplate, color: "text-indigo-600 bg-indigo-50" },
     { label: "Avg. Features", value: data.avgFeatures, sub: "Per standard", icon: BarChart3, color: "text-cyan-600 bg-cyan-50" },
   ];
 

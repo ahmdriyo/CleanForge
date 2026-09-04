@@ -48,7 +48,7 @@ export const Navbar = () => {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/dashboard">
+          <Link href="/login">
             <Button
               variant="ghost"
               size={"lg"}
@@ -57,7 +57,7 @@ export const Navbar = () => {
               Login
             </Button>
           </Link>
-          <Link href="/dashboard">
+          <Link href="/login">
             <Button
               size={"lg"}
               className="rounded-full bg-gradient-to-br from-violet-950 via-indigo-900 to-violet-800 text-white backdrop-blur-md border border-white/20 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_8px_32px_rgba(46,16,101,0.2)] hover:from-violet-900 hover:to-indigo-800 px-6"
