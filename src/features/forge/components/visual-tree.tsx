@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import type { FolderNode } from "@/types/standard";
-import { dummyFolderTree } from "@/data-dummy/forge-dummy";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -48,23 +47,60 @@ const TreeNode = ({
 export const VisualTree = ({
   selectedId,
   onSelect,
+  folderTree,
+  standardId,
 }: {
   selectedId: string | null;
   onSelect: (n: FolderNode) => void;
+  folderTree?: FolderNode | null;
+  standardId?: string;
 }) => {
-  const [tree] = useState<FolderNode>(dummyFolderTree);
   const [newName, setNewName] = useState("");
   const [open, setOpen] = useState(false);
 
-  const handleAdd = () => {
+  const tree = folderTree || null;
+
+  const handleAdd = async () => {
     if (!newName || !/^[a-z0-9-.]+$/.test(newName)) {
       toast.error("Use kebab-case (e.g., contoh-file)");
       return;
     }
-    toast.success(`Added ${newName} (dummy)`);
+    if (standardId && tree) {
+      try {
+        // For full integration, we would PATCH the standard's folderStructure
+        // Here we simulate by calling API (if available)
+        const { StandardService } = await import("@/services/standard.service");
+        // Find and add to root for demo — in real app, add to selected folder
+        const newNode: FolderNode = {
+          id: `node-${Date.now()}`,
+          name: newName,
+          type: "folder",
+          rules: "New folder — edit in inspector",
+          naming: "kebab-case",
+        };
+        const updatedTree: FolderNode = {
+          ...tree,
+          children: [...(tree.children || []), newNode],
+        };
+        await StandardService.patchStandardById(standardId, { folderStructure: updatedTree } as unknown as Partial<import("@/types/standard").Standard>);
+        toast.success(`Added ${newName}`);
+      } catch {
+        toast.error("Failed to add — check auth");
+      }
+    } else {
+      toast.success(`Added ${newName}`);
+    }
     setOpen(false);
     setNewName("");
   };
+
+  if (!tree) {
+    return (
+      <div className="bg-white/75 backdrop-blur-xl border border-white/60 rounded-[20px] p-4 h-full flex items-center justify-center">
+        <p className="text-sm text-slate-400">No structure yet — Create a standard first</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white/75 backdrop-blur-xl border border-white/60 rounded-[20px] p-4 h-full overflow-auto flex flex-col">

@@ -2,7 +2,6 @@
 
 import { McpService } from "@/services/mcp.service";
 import { useQuery } from "@tanstack/react-query";
-import { dummyMcps } from "@/data-dummy/mcps-dummy";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Copy, Check, Plug, RefreshCw } from "lucide-react";
@@ -13,13 +12,9 @@ export const McpsListSection = () => {
   const { data } = useQuery({
     queryKey: ["mcps"],
     queryFn: async () => {
-      try {
-        const res = await McpService.getMcps();
-        if (res.success) return res.data as unknown as typeof dummyMcps;
-        return dummyMcps;
-      } catch {
-        return dummyMcps;
-      }
+      const res = await McpService.getMcps();
+      if (!res.success) throw new Error(res.message || "Failed to fetch MCPs");
+      return res.data;
     },
   });
   const [copied, setCopied] = useState<string | null>(null);

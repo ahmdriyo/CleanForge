@@ -1,25 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { dummyMessages } from "@/data-dummy/journals-dummy";
 import { Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useChat } from "@/hooks/use-chat";
 import { useJournals } from "@/hooks/use-journals";
+import type { ChatMessage } from "@/types/standard";
 
 export const ChatPanel = ({ onApply, standardId }: { onApply?: () => void; standardId?: string }) => {
   const { data: journals } = useJournals(standardId);
-  const initialMessages = journals?.[0]?.messages?.length ? journals[0].messages : dummyMessages;
-  const [messages, setMessages] = useState(initialMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const chatMutation = useChat();
+
+  useEffect(() => {
+    if (journals?.[0]?.messages) {
+      setMessages(journals[0].messages);
+    }
+  }, [journals]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
     const newUser = { id: `msg-${Date.now()}`, role: "user" as const, content: input, timestamp: new Date().toISOString() };
-    setMessages((prev: typeof dummyMessages) => [...prev, newUser]);
+    setMessages((prev: ChatMessage[]) => [...prev, newUser]);
     const currentInput = input;
     setInput("");
 
@@ -36,7 +41,7 @@ export const ChatPanel = ({ onApply, standardId }: { onApply?: () => void; stand
             timestamp: new Date().toISOString(),
             hasApply: true,
           };
-          setMessages((prev: typeof dummyMessages) => [...prev, newAssistant]);
+          setMessages((prev: ChatMessage[]) => [...prev, newAssistant]);
           return;
         }
       } catch {
@@ -52,7 +57,7 @@ export const ChatPanel = ({ onApply, standardId }: { onApply?: () => void; stand
       timestamp: new Date().toISOString(),
       hasApply: true,
     };
-    setMessages((prev: typeof dummyMessages) => [...prev, newAssistant]);
+    setMessages((prev: ChatMessage[]) => [...prev, newAssistant]);
   };
 
   return (
@@ -65,13 +70,13 @@ export const ChatPanel = ({ onApply, standardId }: { onApply?: () => void; stand
           <span className="text-sm font-semibold text-slate-900">Gemini Consultant</span>
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         </div>
-        <Button variant="ghost" size="sm" className="text-xs h-7 rounded-full" onClick={() => setMessages(dummyMessages)}>
+        <Button variant="ghost" size="sm" className="text-xs h-7 rounded-full" onClick={() => setMessages([])}>
           Clear Chat
         </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((m: (typeof dummyMessages)[number]) => (
+        {messages.map((m: ChatMessage) => (
           <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[85%] rounded-2xl p-3 text-sm ${m.role === "user" ? "bg-violet-600 text-white rounded-br-sm ml-8" : "bg-white/70 backdrop-blur border border-white/70 rounded-bl-sm mr-8 text-slate-700"}`}>
               <div className="whitespace-pre-wrap">{m.content}</div>

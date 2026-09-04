@@ -6,6 +6,7 @@ import { ChatPanel } from "./chat-panel";
 import { VisualTree } from "./visual-tree";
 import { FolderInspector } from "./folder-inspector";
 import type { FolderNode } from "@/types/standard";
+import { useStandardById } from "@/hooks/use-standards";
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -21,10 +22,13 @@ export const ForgePage = ({
   standardName: string;
 }) => {
   const [selected, setSelected] = useState<FolderNode | null>(null);
+  const { data: standard } = useStandardById(standardId === "new" ? "" : standardId);
+  const folderTree = (standard as unknown as { folderStructure?: FolderNode })?.folderStructure || null;
+  const displayName = (standard as unknown as { name?: string })?.name || standardName;
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <ForgeHeaderSection standardName={standardName} standardId={standardId} />
+      <ForgeHeaderSection standardName={displayName} standardId={standardId} />
 
       {/* Desktop: 3 panels resizable */}
       <div className="hidden lg:block flex-1 min-h-0 ">
@@ -37,6 +41,8 @@ export const ForgePage = ({
             <VisualTree
               selectedId={selected?.id || null}
               onSelect={setSelected}
+              folderTree={folderTree}
+              standardId={standardId}
             />
           </ResizablePanel>
           <ResizablePanel defaultSize={35} minSize={25}>
@@ -79,6 +85,8 @@ export const ForgePage = ({
             <VisualTree
               selectedId={selected?.id || null}
               onSelect={setSelected}
+              folderTree={folderTree}
+              standardId={standardId}
             />
           </TabsContent>
           <TabsContent value="inspector" className="flex-1 mt-4 h-[60vh]">

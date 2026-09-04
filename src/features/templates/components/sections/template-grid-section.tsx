@@ -2,7 +2,6 @@
 
 import { TemplateService } from "@/services/template.service";
 import { useQuery } from "@tanstack/react-query";
-import { dummyTemplates } from "@/data-dummy/templates-dummy";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Layers } from "lucide-react";
@@ -20,13 +19,9 @@ export const TemplateGridSection = () => {
   const { data } = useQuery({
     queryKey: ["templates"],
     queryFn: async () => {
-      try {
-        const res = await TemplateService.getTemplates();
-        if (res.success) return res.data as unknown as typeof dummyTemplates;
-        return dummyTemplates;
-      } catch {
-        return dummyTemplates;
-      }
+      const res = await TemplateService.getTemplates();
+      if (!res.success) throw new Error(res.message || "Failed to fetch templates");
+      return res.data;
     },
   });
   const router = useRouter();
