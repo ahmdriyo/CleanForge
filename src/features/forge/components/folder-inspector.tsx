@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { FolderNode } from "@/types/standard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,24 +10,17 @@ import { toast } from "sonner";
 import { Copy, Sparkles } from "lucide-react";
 
 export const FolderInspector = ({ node }: { node: FolderNode | null }) => {
-  const [rules, setRules] = useState("");
-  const [naming, setNaming] = useState("kebab-case");
-  const [exampleCode, setExampleCode] = useState("");
-  const [description, setDescription] = useState("");
-
-  useEffect(() => {
-    if (node) {
-      setRules(node.rules || "");
-      setNaming(node.naming || "kebab-case");
-      setExampleCode(node.exampleCode || "");
-      setDescription(node.description || "");
-    }
-  }, [node]);
+  const [rules, setRules] = useState(node?.rules || "");
+  const [naming, setNaming] = useState<string>(node?.naming || "kebab-case");
+  const [exampleCode, setExampleCode] = useState(node?.exampleCode || "");
+  const [description, setDescription] = useState(node?.description || "");
 
   if (!node) {
     return (
       <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-[20px] p-4 h-full flex items-center justify-center">
-        <p className="text-sm text-slate-400 text-center py-12">Select a folder to inspect</p>
+        <p className="text-sm text-slate-400 text-center py-12">
+          Select a folder to inspect
+        </p>
       </div>
     );
   }
@@ -55,49 +48,92 @@ export const FolderInspector = ({ node }: { node: FolderNode | null }) => {
     <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-[20px] p-4 h-full overflow-auto space-y-5">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-slate-900 text-sm">Inspector</h3>
-        <span className="text-xs font-mono text-slate-500 bg-white/75 rounded-full px-2.5 py-1 border border-white/70">{node.name}</span>
+        <span className="text-xs font-mono text-slate-500 bg-white/75 rounded-full px-2.5 py-1 border border-white/70">
+          {node.name}
+        </span>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Rules</Label>
-        <Textarea value={rules} onChange={(e) => setRules(e.target.value)} placeholder="Each feature in its own folder..." className="bg-white/80 backdrop-blur border-white/70 rounded-xl min-h-[80px] focus-visible:ring-violet-500" />
+        <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+          Rules
+        </Label>
+        <Textarea
+          value={rules}
+          onChange={(e) => setRules(e.target.value)}
+          placeholder="Each feature in its own folder..."
+          className="bg-white/80 backdrop-blur border-white/70 rounded-xl min-h-20 focus-visible:ring-violet-500"
+        />
       </div>
 
       <div className="space-y-2">
-        <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Naming Convention</Label>
+        <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+          Naming Convention
+        </Label>
         <div className="flex gap-2">
-          <Input value={naming} onChange={(e) => setNaming(e.target.value)} className="bg-white/80 rounded-xl" placeholder="kebab-case" />
-          <span className="bg-violet-100 text-violet-700 rounded-full text-xs px-3 py-2 border border-violet-200 shrink-0">kebab-case</span>
+          <Input
+            value={naming}
+            onChange={(e) => setNaming(e.target.value)}
+            className="bg-white/80 rounded-xl"
+            placeholder="kebab-case"
+          />
+          <span className="bg-violet-100 text-violet-700 rounded-full text-xs px-3 py-2 border border-violet-200 shrink-0">
+            kebab-case
+          </span>
         </div>
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Example Code</Label>
+          <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+            Example Code
+          </Label>
           <div className="flex gap-1">
-            <Button variant="ghost" size="sm" className="h-7 text-xs rounded-full" onClick={handleCopy}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs rounded-full"
+              onClick={handleCopy}
+            >
               <Copy className="w-3 h-3" /> Copy
             </Button>
-            <Button size="sm" className="h-7 text-xs rounded-full bg-violet-100 text-violet-700 hover:bg-violet-200 border border-violet-200" onClick={handleGenerate}>
+            <Button
+              size="sm"
+              className="h-7 text-xs rounded-full bg-violet-100 text-violet-700 hover:bg-violet-200 border border-violet-200"
+              onClick={handleGenerate}
+            >
               <Sparkles className="w-3 h-3" /> Generate with Gemini
             </Button>
           </div>
         </div>
-        <pre className="bg-slate-900 rounded-xl p-3 text-xs font-mono text-violet-100 overflow-auto max-h-[200px] whitespace-pre-wrap border border-slate-800">
+        <pre className="bg-slate-900 rounded-xl p-3 text-xs font-mono text-violet-100 overflow-auto max-h-50 whitespace-pre-wrap border border-slate-800">
           {exampleCode || "// No example yet. Click Generate with Gemini."}
         </pre>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">Description</Label>
-        <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short description" className="bg-white/80 rounded-xl" />
+        <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+          Description
+        </Label>
+        <Input
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Short description"
+          className="bg-white/80 rounded-xl"
+        />
       </div>
 
       <div className="flex gap-2 pt-2">
-        <Button onClick={handleSave} className="flex-1 rounded-full bg-violet-600 hover:bg-violet-700">
+        <Button
+          onClick={handleSave}
+          className="flex-1 rounded-full bg-violet-600 hover:bg-violet-700"
+        >
           Save Inspector
         </Button>
-        <Button variant="outline" className="rounded-full bg-white/75 border-white/70" onClick={() => toast("Reset (dummy)")}>
+        <Button
+          variant="outline"
+          className="rounded-full bg-white/75 border-white/70"
+          onClick={() => toast("Reset (dummy)")}
+        >
           Reset
         </Button>
       </div>

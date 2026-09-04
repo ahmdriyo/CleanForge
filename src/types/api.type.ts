@@ -38,4 +38,9 @@ export interface StatsResponse {
   activeMcps: number;
   templatesUsed: number;
   avgFeatures: number;
+  trends?: {
+    standards: string;
+    mcps: string;
+    templates: string;
+  };
 }

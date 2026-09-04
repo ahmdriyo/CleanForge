@@ -20,6 +20,11 @@ export async function GET(req: Request) {
         activeMcps,
         templatesUsed: 3,
         avgFeatures,
+        trends: {
+          standards: `+${standards.length} total`,
+          mcps: `+${activeMcps} active`,
+          templates: "+3 templates",
+        },
       },
     });
   } catch (e) {

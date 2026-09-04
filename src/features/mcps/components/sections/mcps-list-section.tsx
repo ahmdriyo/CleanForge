@@ -1,5 +1,6 @@
 "use client";
 
+import { McpService } from "@/services/mcp.service";
 import { useQuery } from "@tanstack/react-query";
 import { dummyMcps } from "@/data-dummy/mcps-dummy";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,18 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export const McpsListSection = () => {
-  const { data } = useQuery({ queryKey: ["mcps"], queryFn: async () => dummyMcps });
+  const { data } = useQuery({
+    queryKey: ["mcps"],
+    queryFn: async () => {
+      try {
+        const res = await McpService.getMcps();
+        if (res.success) return res.data as unknown as typeof dummyMcps;
+        return dummyMcps;
+      } catch {
+        return dummyMcps;
+      }
+    },
+  });
   const [copied, setCopied] = useState<string | null>(null);
 
   const handleCopy = (endpoint: string, token: string, id: string) => {

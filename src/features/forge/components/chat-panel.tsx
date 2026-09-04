@@ -6,23 +6,53 @@ import { Input } from "@/components/ui/input";
 import { dummyMessages } from "@/data-dummy/journals-dummy";
 import { Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { useChat } from "@/hooks/use-chat";
+import { useJournals } from "@/hooks/use-journals";
 
-export const ChatPanel = ({ onApply }: { onApply?: () => void }) => {
-  const [messages, setMessages] = useState(dummyMessages);
+export const ChatPanel = ({ onApply, standardId }: { onApply?: () => void; standardId?: string }) => {
+  const { data: journals } = useJournals(standardId);
+  const initialMessages = journals?.[0]?.messages?.length ? journals[0].messages : dummyMessages;
+  const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState("");
+  const chatMutation = useChat();
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
     const newUser = { id: `msg-${Date.now()}`, role: "user" as const, content: input, timestamp: new Date().toISOString() };
+    setMessages((prev: typeof dummyMessages) => [...prev, newUser]);
+    const currentInput = input;
+    setInput("");
+
+    // Try real API if standardId exists and not "new"
+    if (standardId && standardId !== "new") {
+      try {
+        const res = await chatMutation.mutateAsync({ standardId, message: currentInput });
+        if ((res as unknown as { success: boolean }).success) {
+          const reply = ((res as unknown as { data: { reply: string } }).data).reply;
+          const newAssistant = {
+            id: `msg-${Date.now() + 1}`,
+            role: "assistant" as const,
+            content: reply,
+            timestamp: new Date().toISOString(),
+            hasApply: true,
+          };
+          setMessages((prev: typeof dummyMessages) => [...prev, newAssistant]);
+          return;
+        }
+      } catch {
+        // fallback to dummy
+      }
+    }
+
+    // Fallback dummy
     const newAssistant = {
       id: `msg-${Date.now() + 1}`,
       role: "assistant" as const,
-      content: `Great question about "${input}". I recommend using kebab-case and keeping it in src/features. Click Apply to Standard to update your tree.`,
+      content: `Great question about "${currentInput}". I recommend using kebab-case and keeping it in src/features. Click Apply to Standard to update your tree.`,
       timestamp: new Date().toISOString(),
       hasApply: true,
     };
-    setMessages((prev) => [...prev, newUser, newAssistant]);
-    setInput("");
+    setMessages((prev: typeof dummyMessages) => [...prev, newAssistant]);
   };
 
   return (
@@ -41,7 +71,7 @@ export const ChatPanel = ({ onApply }: { onApply?: () => void }) => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((m) => (
+        {messages.map((m: (typeof dummyMessages)[number]) => (
           <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div className={`max-w-[85%] rounded-2xl p-3 text-sm ${m.role === "user" ? "bg-violet-600 text-white rounded-br-sm ml-8" : "bg-white/70 backdrop-blur border border-white/70 rounded-bl-sm mr-8 text-slate-700"}`}>
               <div className="whitespace-pre-wrap">{m.content}</div>

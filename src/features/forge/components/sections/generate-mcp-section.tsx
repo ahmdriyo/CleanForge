@@ -8,19 +8,38 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Copy, Check, Plug } from "lucide-react";
 import { toast } from "sonner";
 
-export const GenerateMcpSection = ({ standardName }: { standardName: string }) => {
+export const GenerateMcpSection = ({ standardName, standardId }: { standardName: string; standardId: string }) => {
   const [copied, setCopied] = useState(false);
   const [generated, setGenerated] = useState(false);
-  const endpoint = `https://cleanforge.run.app/mcp/user-1/${standardName.toLowerCase().replace(/\s+/g, "-")}/sse`;
+  const [realEndpoint, setRealEndpoint] = useState<string | null>(null);
+  const [realToken, setRealToken] = useState<string | null>(null);
+  const endpoint = realEndpoint || `https://cleanforge.run.app/mcp/user-1/${standardName.toLowerCase().replace(/\s+/g, "-")}/sse`;
   const previewJson = `{\n  "name": "${standardName}",\n  "tools": ["get_my_project_standard", "get_folder_rules", "scaffold_feature", "validate_structure"],\n  "framework": "nextjs",\n  "naming": "kebab-case"\n}`;
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
+    if (standardId && standardId !== "new") {
+      try {
+        const { StandardService } = await import("@/services/standard.service");
+        const res = await StandardService.generateMcp(standardId);
+        if (res.success) {
+          const data = res.data as unknown as { endpointFull: string; token: string };
+          setRealEndpoint(data.endpointFull);
+          setRealToken(data.token);
+          setGenerated(true);
+          toast.success("MCP generated successfully!");
+          return;
+        }
+      } catch {
+        // fallback
+      }
+    }
     setGenerated(true);
-    toast.success("MCP generated successfully!");
+    toast.success("MCP generated successfully! (dummy)");
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(`${endpoint}?token=mcp_tok_abc123`);
+    const token = realToken || "mcp_tok_abc123";
+    navigator.clipboard.writeText(`${endpoint}?token=${token}`);
     setCopied(true);
     toast.success("Copied to clipboard");
     setTimeout(() => setCopied(false), 2000);
@@ -58,7 +77,7 @@ export const GenerateMcpSection = ({ standardName }: { standardName: string }) =
               <div className="bg-gradient-to-br from-violet-50 to-white border border-violet-200 rounded-xl p-3">
                 <div className="text-xs font-medium text-slate-700 mb-1">Your Private Endpoint</div>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 font-mono text-xs bg-slate-900 text-emerald-300 rounded-lg px-2 py-2 truncate">{endpoint}?token=mcp_tok_abc123</code>
+                  <code className="flex-1 font-mono text-xs bg-slate-900 text-emerald-300 rounded-lg px-2 py-2 truncate">{endpoint}?token={realToken || "mcp_tok_abc123"}</code>
                   <Button size="sm" variant="outline" className="rounded-full shrink-0" onClick={handleCopy}>
                     {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                     {copied ? "Copied" : "Copy"}

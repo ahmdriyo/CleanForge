@@ -1,20 +1,24 @@
 "use client";
 
-import { SiNextdotjs, SiFirebase, SiGoogle } from "react-icons/si";
+import { SiNextdotjs, SiFirebase } from "react-icons/si";
 import { motion } from "framer-motion";
+import { FcGoogle } from "react-icons/fc";
 
 const stacks = [
   { label: "Next.js 15", icon: SiNextdotjs },
   { label: "Firebase Auth", icon: SiFirebase },
   { label: "Firestore", icon: SiFirebase },
-  { label: "Gemini API", icon: SiGoogle },
-  { label: "Secret Manager", icon: SiGoogle },
-  { label: "Cloud Run", icon: SiGoogle },
+  { label: "Gemini API", icon: FcGoogle },
+  { label: "Secret Manager", icon: FcGoogle },
+  { label: "Cloud Run", icon: FcGoogle },
 ];
 
 export const TechStackSection = () => {
   return (
-    <section id="tech-stack" className="relative bg-white border-y border-violet-100 py-16 scroll-mt-20 overflow-hidden">
+    <section
+      id="tech-stack"
+      className="relative bg-white border-y border-violet-100 py-16 scroll-mt-20 overflow-hidden"
+    >
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_50%_40%_at_30%_50%,_#c4b5fd_0%,_transparent_60%)] opacity-10" />
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_40%_30%_at_70%_50%,_#a5f3fc_0%,_transparent_50%)] opacity-15" />
       <div className="max-w-[1280px] mx-auto px-4 lg:px-8 text-center">
@@ -33,7 +37,8 @@ export const TechStackSection = () => {
           transition={{ delay: 0.1 }}
           className="text-sm text-slate-600 mt-2"
         >
-          Production-ready, authenticated, isolated per-user, deployed on Cloud Run.
+          Production-ready, authenticated, isolated per-user, deployed on Cloud
+          Run.
         </motion.p>
 
         <div className="flex flex-wrap gap-3 justify-center mt-8">

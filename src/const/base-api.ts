@@ -57,7 +57,18 @@ baseApiToken.interceptors.request.use(
       delete config.headers["content-type"];
     }
 
-    const token = await getToken();
+    // Try Firebase ID token from localStorage/sessionStorage first (client-side Firebase Auth), fallback to cookie token
+    let token: string | null = null;
+    if (typeof window !== "undefined") {
+      token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+    }
+    if (!token) {
+      try {
+        token = await getToken();
+      } catch {
+        token = null;
+      }
+    }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -70,9 +81,16 @@ baseApiToken.interceptors.response.use(
   (res) => res,
   async (err) => {
     if (err.response?.status === 401) {
-      await clearTokens();
+      try {
+        await clearTokens();
+      } catch {}
       if (typeof window !== "undefined") {
-        window.location.href = "/admin/login";
+        localStorage.removeItem("accessToken");
+        sessionStorage.removeItem("accessToken");
+        // Only redirect if not already on auth page
+        if (!window.location.pathname.startsWith("/login") && !window.location.pathname.startsWith("/register")) {
+          window.location.href = "/login";
+        }
       }
     }
 
