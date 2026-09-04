@@ -23,7 +23,7 @@ export const getGeminiApiKey = async (): Promise<string> => {
   }
 
   // Fallback to env (local dev)
-  const envKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
+  const envKey = process.env.GEMINI_API_KEY;
   if (envKey) {
     cachedKey = envKey;
     return envKey;
