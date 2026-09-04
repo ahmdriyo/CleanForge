@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GenerateMcpSection } from "./generate-mcp-section";
 
-export const ForgeHeaderSection = ({ standardName }: { standardName: string }) => {
+export const ForgeHeaderSection = ({ standardName, standardId }: { standardName: string; standardId: string }) => {
   const [name, setName] = useState(standardName);
   return (
     <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-full px-4 py-2 flex flex-col md:flex-row gap-3 md:items-center justify-between mb-4">
@@ -19,7 +19,7 @@ export const ForgeHeaderSection = ({ standardName }: { standardName: string }) =
         <Button variant="outline" size="sm" className="rounded-full bg-white/75 border-white/70">
           Save
         </Button>
-        <GenerateMcpSection standardName={name} />
+        <GenerateMcpSection standardName={name} standardId={standardId} />
       </div>
     </div>
   );

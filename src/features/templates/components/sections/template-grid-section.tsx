@@ -1,5 +1,6 @@
 "use client";
 
+import { TemplateService } from "@/services/template.service";
 import { useQuery } from "@tanstack/react-query";
 import { dummyTemplates } from "@/data-dummy/templates-dummy";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,18 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export const TemplateGridSection = () => {
-  const { data } = useQuery({ queryKey: ["templates"], queryFn: async () => dummyTemplates });
+  const { data } = useQuery({
+    queryKey: ["templates"],
+    queryFn: async () => {
+      try {
+        const res = await TemplateService.getTemplates();
+        if (res.success) return res.data as unknown as typeof dummyTemplates;
+        return dummyTemplates;
+      } catch {
+        return dummyTemplates;
+      }
+    },
+  });
   const router = useRouter();
 
   const handleUse = (id: string) => {

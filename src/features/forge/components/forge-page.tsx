@@ -14,13 +14,13 @@ export const ForgePage = ({ standardId, standardName }: { standardId: string; st
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <ForgeHeaderSection standardName={standardName} />
+      <ForgeHeaderSection standardName={standardName} standardId={standardId} />
 
       {/* Desktop: 3 panels resizable */}
       <div className="hidden lg:block flex-1 min-h-0">
         <ResizablePanelGroup orientation="horizontal" className="h-full rounded-[20px]">
           <ResizablePanel defaultSize={30} minSize={20}>
-            <ChatPanel onApply={() => console.log("apply", standardId)} />
+            <ChatPanel standardId={standardId} onApply={() => console.log("apply", standardId)} />
           </ResizablePanel>
           <ResizableHandle withHandle className="bg-transparent" />
           <ResizablePanel defaultSize={35} minSize={25}>
@@ -48,7 +48,7 @@ export const ForgePage = ({ standardId, standardName }: { standardId: string; st
             </TabsTrigger>
           </TabsList>
           <TabsContent value="chat" className="flex-1 mt-4 h-[60vh]">
-            <ChatPanel />
+            <ChatPanel standardId={standardId} />
           </TabsContent>
           <TabsContent value="tree" className="flex-1 mt-4 h-[60vh]">
             <VisualTree selectedId={selected?.id || null} onSelect={setSelected} />
