@@ -1,6 +1,7 @@
 import { StandardService } from "@/services/standard.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Standard } from "@/types/standard";
+import type { ApiResponse } from "@/types/api.type";
 
 export const STANDARD_QUERY_KEYS = {
   all: ["standards"] as const,
@@ -12,7 +13,7 @@ export const useStandards = () => {
   return useQuery({
     queryKey: STANDARD_QUERY_KEYS.all,
     queryFn: () => StandardService.getStandards(),
-    select: (res: any) => res.data,
+    select: (res: ApiResponse<Standard[]>) => (res.success ? res.data : []),
   });
 };
 
@@ -21,7 +22,7 @@ export const useStandardById = (id: string) => {
     queryKey: STANDARD_QUERY_KEYS.detail(id),
     queryFn: () => StandardService.getStandardById(id),
     enabled: Boolean(id),
-    select: (res: any) => res.data,
+    select: (res: ApiResponse<Standard>) => (res.success ? res.data : null),
   });
 };
 

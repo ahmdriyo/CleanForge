@@ -1,4 +1,17 @@
-export type Framework = "nextjs" | "nestjs" | "go";
+export type Framework =
+  | "nextjs"
+  | "golang"
+  | "go"
+  | "react"
+  | "vue"
+  | "express"
+  | "nestjs"
+  | "laravel"
+  | "fastapi"
+  | "django"
+  | "flutter"
+  | "custom"
+  | (string & {});
 
 export type NamingConvention = "kebab-case" | "PascalCase" | "camelCase";
 

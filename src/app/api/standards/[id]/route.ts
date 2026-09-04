@@ -2,12 +2,26 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "@/server/auth/verify-id-token";
 import { getStandardById, updateStandard, deleteStandard } from "@/server/repository/standard-repository";
+import type { FolderNode } from "@/types/standard";
+
+const folderNodeSchema: z.ZodType<FolderNode> = z.lazy(() =>
+  z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    type: z.enum(["folder", "file"]),
+    rules: z.string().optional(),
+    naming: z.enum(["kebab-case", "PascalCase", "camelCase"]).optional(),
+    exampleCode: z.string().optional(),
+    description: z.string().optional(),
+    children: z.array(folderNodeSchema).optional(),
+  }),
+);
 
 const updateSchema = z.object({
   name: z.string().min(3).optional(),
-  framework: z.enum(["nextjs", "nestjs", "go"]).optional(),
+  framework: z.string().min(1).optional(),
   description: z.string().optional(),
-  folderStructure: z.any().optional(),
+  folderStructure: folderNodeSchema.optional(),
   globalRules: z
     .object({
       namingConvention: z.enum(["kebab-case", "PascalCase", "camelCase"]),

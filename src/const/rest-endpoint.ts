@@ -17,6 +17,7 @@ export enum RestEndpoint {
   PatchStandardById = `${prefix}/standards`,
   DeleteStandardById = `${prefix}/standards`,
   PostGenerateMcp = `${prefix}/standards`, // + /{id}/generate-mcp
+  PostGenerateExample = `${prefix}/standards/generate-example`,
 
   // Journals
   GetJournals = `${prefix}/journals`,

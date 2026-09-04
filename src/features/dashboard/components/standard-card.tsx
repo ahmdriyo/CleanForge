@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Layers } from "lucide-react";
 import Link from "next/link";
+import { POPULAR_FRAMEWORKS } from "@/const/framework-templates";
 
 export const StandardCard = ({ standard }: { standard: Standard }) => {
   const statusColor =
@@ -14,18 +15,16 @@ export const StandardCard = ({ standard }: { standard: Standard }) => {
       ? "bg-amber-50 text-amber-700 border-amber-200"
       : "bg-slate-100 text-slate-600 border-slate-200";
 
-  const frameworkColor =
-    standard.framework === "nextjs"
-      ? "bg-slate-900 text-white"
-      : standard.framework === "nestjs"
-      ? "bg-red-600 text-white"
-      : "bg-cyan-600 text-white";
+  const frameworkInfo = POPULAR_FRAMEWORKS.find(
+    (f) => f.id === standard.framework || f.name.toLowerCase() === standard.framework?.toLowerCase()
+  );
+  const displayName = frameworkInfo ? frameworkInfo.name : standard.framework;
 
   return (
     <div className="bg-white/75 backdrop-blur-xl border border-white/60 rounded-[20px] p-5 hover:bg-white/85 hover:border-white/70 hover:shadow-[0_12px_40px_rgba(59,130,246,0.15)] transition-all duration-300 flex flex-col shadow-[0_8px_32px_rgba(59,130,246,0.08)]">
       <div className="flex items-center gap-2 mb-3">
-        <Badge className={`${frameworkColor} rounded-full text-[11px] px-2.5 py-0.5 font-medium border-0`}>
-          {standard.framework === "nextjs" ? "Next.js 15" : standard.framework === "nestjs" ? "NestJS" : "Go"}
+        <Badge className="bg-slate-900 text-white rounded-full text-[11px] px-2.5 py-0.5 font-medium border-0">
+          {displayName}
         </Badge>
         <Badge variant="outline" className={`${statusColor} rounded-full text-[11px] capitalize`}>
           {standard.mcpStatus}

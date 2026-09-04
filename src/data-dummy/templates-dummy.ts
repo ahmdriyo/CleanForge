@@ -1,38 +1,16 @@
 import type { Template } from "@/types/standard";
-import { dummyFolderTree } from "./forge-dummy";
+import { POPULAR_FRAMEWORKS } from "@/const/framework-templates";
 
-export const dummyTemplates: Template[] = [
-  {
-    id: "nextjs-clean",
-    name: "Next.js Clean Architecture",
-    framework: "Next.js 15",
-    structurePreview: "src/features/auth, src/features/forge, src/components/ui",
-    description: "App Router, feature-based, Zustand, Tailwind v4 + shadcn. The most popular for vibe coding.",
-    icon: "nextjs",
+export const dummyTemplates: Template[] = POPULAR_FRAMEWORKS.filter((f) => f.id !== "custom").map(
+  (f) => ({
+    id: `${f.id}-template`,
+    name: `${f.name} Clean Architecture`,
+    framework: f.name,
+    structurePreview: f.initialTree.children?.slice(0, 3).map((c) => `${f.initialTree.name}/${c.name}`).join(", ") || "",
+    description: f.description,
+    icon: f.id,
     accent: "violet",
-    rules: "kebab-case, App Router, Feature-based",
-    folderStructure: dummyFolderTree,
-  },
-  {
-    id: "nestjs-modular",
-    name: "NestJS Modular",
-    framework: "NestJS",
-    structurePreview: "src/modules/user, src/modules/auth, src/common",
-    description: "Modular NestJS with clean architecture, Prisma, and scalable service layer.",
-    icon: "nestjs",
-    accent: "indigo",
-    rules: "kebab-case, Modular, Clean Arch",
-    folderStructure: dummyFolderTree,
-  },
-  {
-    id: "go-clean",
-    name: "Go Clean Architecture",
-    framework: "Go",
-    structurePreview: "internal/user, internal/auth, pkg/utils",
-    description: "Hexagonal architecture for Go. Domain, use-case, and handler separation.",
-    icon: "go",
-    accent: "teal",
-    rules: "kebab-case, Hexagonal, DDD",
-    folderStructure: dummyFolderTree,
-  },
-];
+    rules: `${f.defaultNaming}, ${f.defaultRules.principles.slice(0, 2).join(", ")}`,
+    folderStructure: f.initialTree,
+  })
+);
