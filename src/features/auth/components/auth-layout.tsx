@@ -1,6 +1,6 @@
 "use client";
 
-import { Layers, Sparkles } from "lucide-react";
+import { Layers } from "lucide-react";
 
 export const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -21,17 +21,21 @@ export const AuthLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
 
         {/* Center bubble + big text like SMART AI */}
-        <div className="relative flex-1 flex flex-col items-center justify-center">
+        <div className="relative flex-1 flex flex-col items-center justify-center mt-30">
           {/* Big faded watermark text */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-            <span className="text-[88px] xl:text-[110px] font-bold tracking-tighter text-white/10 leading-none">CLEAN</span>
+            <span className="text-[88px] xl:text-[110px] font-bold tracking-tighter text-white/10 leading-none">
+              CLEAN
+            </span>
           </div>
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none translate-y-14">
-            <span className="text-[88px] xl:text-[110px] font-bold tracking-tighter text-white/10 leading-none">FORGE</span>
+            <span className="text-[88px] xl:text-[110px] font-bold tracking-tighter text-white/10 leading-none">
+              FORGE
+            </span>
           </div>
 
           {/* Glass bubble */}
-          <div className="relative w-[220px] h-[220px] rounded-full bg-gradient-to-br from-pink-300 via-violet-400 to-indigo-500 shadow-[0_32px_80px_rgba(0,0,0,0.25),inset_0_1px_0_0_rgba(255,255,255,0.4)] border border-white/30 flex items-center justify-center overflow-hidden">
+          <div className="relative w-[220px] h-[220px] mb-90 rounded-full bg-gradient-to-br from-pink-300 via-violet-400 to-indigo-500 shadow-[0_32px_80px_rgba(0,0,0,0.25),inset_0_1px_0_0_rgba(255,255,255,0.4)] border border-white/30 flex items-center justify-center overflow-hidden">
             {/* Highlight */}
             <div className="absolute top-6 left-10 w-20 h-20 rounded-full bg-white/30 blur-xl" />
             <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-40 h-20 rounded-full bg-cyan-300/50 blur-xl" />
@@ -43,9 +47,12 @@ export const AuthLayout = ({ children }: { children: React.ReactNode }) => {
 
         {/* Bottom copy */}
         <div className="relative">
-          <h2 className="text-2xl font-semibold tracking-tight text-white">Forge Your Standards</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-white">
+            Forge Your Standards
+          </h2>
           <p className="text-sm leading-relaxed text-violet-100 mt-2 max-w-md">
-            Capture your clean architecture once. Enforce it to every AI Agent via private MCP — consistent, secure, and yours.
+            Capture your clean architecture once. Enforce it to every AI Agent
+            via private MCP — consistent, secure, and yours.
           </p>
         </div>
       </div>
