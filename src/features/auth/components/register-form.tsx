@@ -10,9 +10,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { registerSchema, type RegisterFormValues } from "@/features/auth/schemas/auth-schema";
+import {
+  registerSchema,
+  type RegisterFormValues,
+} from "@/features/auth/schemas/auth-schema";
 import { auth } from "@/lib/firebase/client";
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from "firebase/auth";
 
 export const RegisterForm = () => {
   const router = useRouter();
@@ -32,7 +40,11 @@ export const RegisterForm = () => {
   const onSubmit = async (values: RegisterFormValues) => {
     setLoading(true);
     try {
-      const cred = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const cred = await createUserWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password,
+      );
       await updateProfile(cred.user, { displayName: values.name });
       const idToken = await cred.user.getIdToken();
 
@@ -78,16 +90,18 @@ export const RegisterForm = () => {
   return (
     <div className="w-full max-w-[420px] mx-auto">
       <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">C</div>
-        <span className="font-semibold tracking-tight text-violet-950">CleanForge</span>
+        <span className="font-semibold tracking-tight text-violet-950">
+          CleanForge
+        </span>
       </div>
 
       <div className="text-center lg:text-left mb-6">
-        <div className="w-10 h-10 rounded-xl bg-violet-100 border border-violet-200 flex items-center justify-center mx-auto lg:mx-0 mb-3">
-          <span className="text-violet-700 font-bold">C</span>
-        </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Create Account</h1>
-        <p className="text-sm text-slate-500 mt-1">Start forging your clean standards today</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+          Create Account
+        </h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Start forging your clean standards today
+        </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -97,9 +111,16 @@ export const RegisterForm = () => {
           </Label>
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input id="name" placeholder="Alex Morgan" className="pl-9 bg-white border-violet-100 rounded-xl focus-visible:ring-violet-500" {...register("name")} />
+            <Input
+              id="name"
+              placeholder="Alex Morgan"
+              className="pl-9 bg-white border-violet-100 rounded-xl focus-visible:ring-violet-500"
+              {...register("name")}
+            />
           </div>
-          {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+          {errors.name && (
+            <p className="text-xs text-red-500">{errors.name.message}</p>
+          )}
         </div>
 
         <div className="space-y-1.5">
@@ -108,13 +129,24 @@ export const RegisterForm = () => {
           </Label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input id="email" type="email" placeholder="you@example.com" className="pl-9 bg-white border-violet-100 rounded-xl focus-visible:ring-violet-500" {...register("email")} />
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              className="pl-9 bg-white border-violet-100 rounded-xl focus-visible:ring-violet-500"
+              {...register("email")}
+            />
           </div>
-          {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+          {errors.email && (
+            <p className="text-xs text-red-500">{errors.email.message}</p>
+          )}
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="password" className="text-xs font-medium text-slate-700">
+          <Label
+            htmlFor="password"
+            className="text-xs font-medium text-slate-700"
+          >
             Password
           </Label>
           <div className="relative">
@@ -126,15 +158,28 @@ export const RegisterForm = () => {
               className="pl-9 pr-9 bg-white border-violet-100 rounded-xl focus-visible:ring-violet-500"
               {...register("password")}
             />
-            <button type="button" onClick={() => setShowPass((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-              {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            <button
+              type="button"
+              onClick={() => setShowPass((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              {showPass ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
             </button>
           </div>
-          {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+          {errors.password && (
+            <p className="text-xs text-red-500">{errors.password.message}</p>
+          )}
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="confirmPassword" className="text-xs font-medium text-slate-700">
+          <Label
+            htmlFor="confirmPassword"
+            className="text-xs font-medium text-slate-700"
+          >
             Confirm Password
           </Label>
           <div className="relative">
@@ -147,11 +192,23 @@ export const RegisterForm = () => {
               {...register("confirmPassword")}
             />
           </div>
-          {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword.message}</p>}
+          {errors.confirmPassword && (
+            <p className="text-xs text-red-500">
+              {errors.confirmPassword.message}
+            </p>
+          )}
         </div>
 
-        <Button type="submit" disabled={loading} className="w-full rounded-full bg-[#e5318a] hover:bg-[#d81b60] text-white py-6 shadow-lg shadow-pink-500/20">
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Account"}
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-full bg-[#e5318a] hover:bg-[#d81b60] text-white py-6 shadow-lg shadow-pink-500/20"
+        >
+          {loading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            "Create Account"
+          )}
         </Button>
 
         <div className="relative flex items-center gap-3 py-1">
@@ -160,13 +217,31 @@ export const RegisterForm = () => {
           <div className="h-px flex-1 bg-slate-100" />
         </div>
 
-        <Button type="button" variant="outline" onClick={handleGoogle} disabled={googleLoading} className="w-full rounded-full bg-white border border-slate-200 py-6 hover:bg-slate-50">
-          {googleLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="flex items-center gap-2 font-medium text-slate-700"><span className="w-5 h-5 rounded-full bg-white border flex items-center justify-center text-[10px] font-bold text-blue-500">G</span> Google</span>}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleGoogle}
+          disabled={googleLoading}
+          className="w-full rounded-full bg-white border border-slate-200 py-6 hover:bg-slate-50"
+        >
+          {googleLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <span className="flex items-center gap-2 font-medium text-slate-700">
+              <span className="w-5 h-5 rounded-full bg-white border flex items-center justify-center text-[10px] font-bold text-blue-500">
+                G
+              </span>{" "}
+              Google
+            </span>
+          )}
         </Button>
 
         <p className="text-center text-xs text-slate-500">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-slate-900 hover:text-violet-700">
+          <Link
+            href="/login"
+            className="font-medium text-slate-900 hover:text-violet-700"
+          >
             Sign in
           </Link>
         </p>
