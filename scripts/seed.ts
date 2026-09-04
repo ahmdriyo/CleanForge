@@ -10,6 +10,7 @@
 
 import "dotenv/config";
 import { initializeApp, getApps, cert } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { dummyStandards } from "../src/data-dummy/standards-dummy";
 import { dummyMcps } from "../src/data-dummy/mcps-dummy";
@@ -44,6 +45,62 @@ if (!getApps().length) {
 }
 
 const db = getFirestore();
+const adminAuth = getAuth();
+
+// Demo users for testing login
+const DEMO_USERS = [
+  {
+    email: "demo@cleanforge.dev",
+    password: "Demo123!",
+    displayName: "Demo User",
+    emailVerified: true,
+  },
+  {
+    email: "test@cleanforge.dev",
+    password: "Test123!",
+    displayName: "Test User",
+    emailVerified: true,
+  },
+];
+
+const ensureDemoUsers = async (): Promise<string[]> => {
+  const uids: string[] = [];
+  console.log("\n👤 Ensuring demo users...");
+  for (const demo of DEMO_USERS) {
+    try {
+      let user;
+      try {
+        user = await adminAuth.getUserByEmail(demo.email);
+        console.log(`  ↻ ${demo.email} already exists (${user.uid})`);
+      } catch {
+        user = await adminAuth.createUser({
+          email: demo.email,
+          password: demo.password,
+          displayName: demo.displayName,
+          emailVerified: demo.emailVerified,
+        });
+        console.log(`  ✓ Created ${demo.email} (${user.uid}) — password: ${demo.password}`);
+      }
+      // Ensure Firestore user doc
+      await db.doc(`users/${user.uid}`).set(
+        {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          provider: "password",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true },
+      );
+      uids.push(user.uid);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(`  ✗ Failed ${demo.email}:`, msg);
+    }
+  }
+  return uids;
+};
 
 const seedForUser = async (uid: string) => {
   console.log(`\n🌱 Seeding data for user: ${uid}\n`);
@@ -97,14 +154,37 @@ const seedForUser = async (uid: string) => {
 };
 
 const main = async () => {
-  const uid = process.argv[2] || process.env.SEED_UID || "demo-user";
-  if (!uid) {
-    console.error("❌ Please provide UID: npm run seed -- <uid>");
-    process.exit(1);
+  const argUid = process.argv[2];
+
+  // If specific UID provided, seed only that user
+  if (argUid && !argUid.startsWith("--")) {
+    try {
+      await seedForUser(argUid);
+      process.exit(0);
+    } catch (e) {
+      console.error("❌ Seed failed:", e);
+      process.exit(1);
+    }
+    return;
   }
 
+  // Otherwise seed demo users + any SEED_UID
   try {
-    await seedForUser(uid);
+    const demoUids = await ensureDemoUsers();
+    for (const uid of demoUids) {
+      await seedForUser(uid);
+    }
+
+    // Also seed custom UID if provided via env
+    const extraUid = process.env.SEED_UID;
+    if (extraUid && !demoUids.includes(extraUid)) {
+      await seedForUser(extraUid);
+    }
+
+    console.log("\n🎉 All demo users seeded!");
+    console.log("   demo@cleanforge.dev / Demo123!");
+    console.log("   test@cleanforge.dev / Test123!");
+    console.log("\n💡 Login at /login with one of these accounts");
     process.exit(0);
   } catch (e) {
     console.error("❌ Seed failed:", e);

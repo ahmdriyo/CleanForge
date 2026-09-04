@@ -34,8 +34,9 @@ export const FeaturesSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              whileHover={{ y: -4, scale: 1.01 }}
-              className="bg-white rounded-[24px] border border-violet-100 p-6 hover:shadow-lg transition-shadow"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-white rounded-[24px] border border-violet-100 p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-50 to-white border border-violet-100 flex items-center justify-center text-violet-900">

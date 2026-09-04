@@ -8,7 +8,10 @@ import { motion } from "framer-motion";
 
 export const HeroSection = () => {
   return (
-    <section id="hero" className="relative overflow-hidden bg-[#fbfbff] scroll-mt-20">
+    <section
+      id="hero"
+      className="relative overflow-hidden bg-[#fbfbff] scroll-mt-20"
+    >
       {/* Enhanced colorful gradients - more violet, pink, cyan, indigo */}
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_50%_100%,_#ffffff_0%,_#f3e8ff_30%,_#ddd6fe_55%,_#fbfbff_85%)] opacity-90" />
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_50%_45%_at_100%_0%,_#c4b5fd_0%,_transparent_55%)] opacity-40" />
@@ -22,8 +25,7 @@ export const HeroSection = () => {
           transition={{ duration: 0.6 }}
           className="inline-flex items-center gap-2 bg-violet-100 text-violet-900 border border-violet-200 rounded-full px-3 py-1.5 text-[11px] font-medium uppercase tracking-widest"
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          NEW • CLEANFORGE — MCP FORGE FOR VIBE CODERS
+          CLEANFORGE — MCP FORGE FOR VIBE CODERS
         </motion.div>
 
         <motion.h1
@@ -33,7 +35,9 @@ export const HeroSection = () => {
           className="mt-6 text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight text-violet-950 leading-[0.95]"
         >
           Clean Code, <br />
-          <span className="bg-gradient-to-r from-violet-900 via-indigo-700 to-violet-800 bg-clip-text text-transparent">Every Vibe</span>
+          <span className="bg-gradient-to-r from-violet-900 via-indigo-700 to-violet-800 bg-clip-text text-transparent">
+            Every Vibe
+          </span>
         </motion.h1>
 
         <motion.p
@@ -42,7 +46,9 @@ export const HeroSection = () => {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="mt-6 text-base md:text-lg font-normal leading-relaxed max-w-2xl mx-auto text-violet-950/70"
         >
-          Don&apos;t let AI ruin your project structure. Your private Standard Journal — brainstorm with Gemini, generate a private MCP that enforces clean code to every AI Agent.
+          Don&apos;t let AI ruin your project structure. Your private Standard
+          Journal — brainstorm with Gemini, generate a private MCP that enforces
+          clean code to every AI Agent.
         </motion.p>
 
         <motion.div
@@ -60,27 +66,15 @@ export const HeroSection = () => {
           </motion.div>
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <Link href="#templates">
-              <Button variant="outline" className="rounded-full bg-white border-violet-200 text-violet-900 hover:bg-violet-50 px-8 py-6 text-sm font-medium">
+              <Button
+                variant="outline"
+                className="rounded-full bg-white border-violet-200 text-violet-900 hover:bg-violet-50 px-8 py-6 text-sm font-medium"
+              >
                 View Templates
               </Button>
             </Link>
           </motion.div>
         </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-          className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-400"
-        >
-          <div className="flex -space-x-2">
-            <div className="w-6 h-6 rounded-full bg-violet-200 border-2 border-white" />
-            <div className="w-6 h-6 rounded-full bg-indigo-200 border-2 border-white" />
-            <div className="w-6 h-6 rounded-full bg-violet-300 border-2 border-white" />
-          </div>
-          <span>Trusted by vibe coders worldwide</span>
-        </motion.div>
-
         <HeroIllustration />
       </div>
     </section>
