@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Mail, Lock, User, Loader2 } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -228,10 +229,7 @@ export const RegisterForm = () => {
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <span className="flex items-center gap-2 font-medium text-slate-700">
-              <span className="w-5 h-5 rounded-full bg-white border flex items-center justify-center text-[10px] font-bold text-blue-500">
-                G
-              </span>{" "}
-              Google
+              <FcGoogle className="w-5 h-5" /> Google
             </span>
           )}
         </Button>
