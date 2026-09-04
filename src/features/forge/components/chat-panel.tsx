@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Sparkles } from "lucide-react";
-import { toast } from "sonner";
 import { useChat } from "@/hooks/use-chat";
 import { useJournals } from "@/hooks/use-journals";
 import type { ChatMessage } from "@/types/standard";
@@ -21,11 +20,23 @@ export const ChatPanel = ({
   const [input, setInput] = useState("");
   const chatMutation = useChat();
 
-  useEffect(() => {
-    if (journals?.[0]?.messages) {
-      setMessages(journals[0].messages);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Sync messages without calling setState in an effect
+  const [prevJournalId, setPrevJournalId] = useState<string | null>(null);
+  const currentJournal = journals?.[0];
+  if (currentJournal && currentJournal.id !== prevJournalId) {
+    setPrevJournalId(currentJournal.id);
+    if (currentJournal.messages) {
+      setMessages(currentJournal.messages);
     }
-  }, [journals]);
+  }
+
+  // Auto scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -97,16 +108,15 @@ export const ChatPanel = ({
   };
 
   return (
-    <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-[20px] flex flex-col h-full overflow-hidden">
+    <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-[20px] flex flex-col h-full min-h-0 overflow-hidden focus-within:ring-2 focus-within:ring-violet-400/40 transition-all duration-200">
       <div className="px-4 py-3 border-b border-white/70 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-full bg-linear-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <span className="text-sm font-semibold text-slate-900">
             Gemini Consultant
           </span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         </div>
         <Button
           variant="ghost"
@@ -118,7 +128,13 @@ export const ChatPanel = ({
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4">
+      <div
+        ref={messagesContainerRef}
+        tabIndex={0}
+        role="region"
+        aria-label="Chat messages history"
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4 overscroll-contain custom-scrollbar focus:outline-none focus-visible:ring-1 focus-visible:ring-violet-400/50 rounded-xl"
+      >
         {messages.map((m: ChatMessage) => (
           <div
             key={m.id}
@@ -144,6 +160,7 @@ export const ChatPanel = ({
             </div>
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="p-3 border-t border-white/70 shrink-0">

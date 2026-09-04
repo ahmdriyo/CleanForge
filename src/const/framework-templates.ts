@@ -20,13 +20,18 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
     id: "nextjs",
     name: "Next.js",
     category: "fullstack",
-    description: "App Router, feature-based modules, TanStack Query/Zustand, Tailwind CSS",
+    description:
+      "App Router, feature-based modules, TanStack Query/Zustand, Tailwind CSS",
     defaultNaming: "kebab-case",
     defaultRules: {
       namingConvention: "kebab-case",
       stateManagement: "TanStack Query + Zustand",
       styling: "Tailwind CSS + shadcn/ui",
-      principles: ["Feature-based", "App Router isolation", "No cross-feature imports"],
+      principles: [
+        "Feature-based",
+        "App Router isolation",
+        "No cross-feature imports",
+      ],
     },
     initialTree: {
       id: "root-nextjs",
@@ -40,19 +45,36 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           id: "next-app",
           name: "app",
           type: "folder",
-          rules: "Next.js App Router routes, page layouts, and route handlers only.",
+          rules:
+            "Next.js App Router routes, page layouts, and route handlers only.",
           naming: "kebab-case",
           children: [
-            { id: "next-app-layout", name: "layout.tsx", type: "file", rules: "Root layout with providers" },
-            { id: "next-app-page", name: "page.tsx", type: "file", rules: "Landing or main page" },
-            { id: "next-app-globals", name: "globals.css", type: "file", rules: "Tailwind root styles" },
+            {
+              id: "next-app-layout",
+              name: "layout.tsx",
+              type: "file",
+              rules: "Root layout with providers",
+            },
+            {
+              id: "next-app-page",
+              name: "page.tsx",
+              type: "file",
+              rules: "Landing or main page",
+            },
+            {
+              id: "next-app-globals",
+              name: "globals.css",
+              type: "file",
+              rules: "Tailwind root styles",
+            },
           ],
         },
         {
           id: "next-features",
           name: "features",
           type: "folder",
-          rules: "Self-contained business modules. Each feature contains components, hooks, schemas, and types.",
+          rules:
+            "Self-contained business modules. Each feature contains components, hooks, schemas, and types.",
           naming: "kebab-case",
           children: [
             {
@@ -61,9 +83,24 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
               type: "folder",
               rules: "Authentication domain logic",
               children: [
-                { id: "next-auth-comp", name: "components", type: "folder", rules: "Feature UI components" },
-                { id: "next-auth-hooks", name: "hooks", type: "folder", rules: "React queries & mutations" },
-                { id: "next-auth-schemas", name: "schemas", type: "folder", rules: "Zod validation schemas" },
+                {
+                  id: "next-auth-comp",
+                  name: "components",
+                  type: "folder",
+                  rules: "Feature UI components",
+                },
+                {
+                  id: "next-auth-hooks",
+                  name: "hooks",
+                  type: "folder",
+                  rules: "React queries & mutations",
+                },
+                {
+                  id: "next-auth-schemas",
+                  name: "schemas",
+                  type: "folder",
+                  rules: "Zod validation schemas",
+                },
               ],
             },
           ],
@@ -72,11 +109,22 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           id: "next-components",
           name: "components",
           type: "folder",
-          rules: "Shared design-system UI components (shadcn/ui, layout wrappers).",
+          rules:
+            "Shared design-system UI components (shadcn/ui, layout wrappers).",
           naming: "kebab-case",
           children: [
-            { id: "next-ui", name: "ui", type: "folder", rules: "Primitive atoms/shadcn components" },
-            { id: "next-layout", name: "layout", type: "folder", rules: "Global header, sidebar, navigation" },
+            {
+              id: "next-ui",
+              name: "ui",
+              type: "folder",
+              rules: "Primitive atoms/shadcn components",
+            },
+            {
+              id: "next-layout",
+              name: "layout",
+              type: "folder",
+              rules: "Global header, sidebar, navigation",
+            },
           ],
         },
         {
@@ -85,7 +133,14 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           type: "folder",
           rules: "Shared clients, query clients, and pure utility functions.",
           naming: "kebab-case",
-          children: [{ id: "next-utils", name: "utils.ts", type: "file", rules: "Tailwind cn helper" }],
+          children: [
+            {
+              id: "next-utils",
+              name: "utils.ts",
+              type: "file",
+              rules: "Tailwind cn helper",
+            },
+          ],
         },
       ],
     },
@@ -94,13 +149,18 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
     id: "golang",
     name: "Go",
     category: "backend",
-    description: "Standard Go project layout, internal/pkg packages, domain-driven architecture",
+    description:
+      "Standard Go project layout, internal/pkg packages, domain-driven architecture",
     defaultNaming: "kebab-case",
     defaultRules: {
       namingConvention: "kebab-case",
       stateManagement: "N/A (Backend)",
       styling: "N/A",
-      principles: ["Clean Architecture", "Hexagonal / Ports & Adapters", "Dependency Inversion"],
+      principles: [
+        "Clean Architecture",
+        "Hexagonal / Ports & Adapters",
+        "Dependency Inversion",
+      ],
     },
     initialTree: {
       id: "root-go",
@@ -120,7 +180,14 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
               name: "server",
               type: "folder",
               rules: "HTTP server binary entry point",
-              children: [{ id: "go-main", name: "main.go", type: "file", rules: "Main entrypoint" }],
+              children: [
+                {
+                  id: "go-main",
+                  name: "main.go",
+                  type: "file",
+                  rules: "Main entrypoint",
+                },
+              ],
             },
           ],
         },
@@ -128,13 +195,15 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           id: "go-internal",
           name: "internal",
           type: "folder",
-          rules: "Private application and library code. Cannot be imported by external packages.",
+          rules:
+            "Private application and library code. Cannot be imported by external packages.",
           children: [
             {
               id: "go-domain",
               name: "domain",
               type: "folder",
-              rules: "Core enterprise business entities and repository interfaces.",
+              rules:
+                "Core enterprise business entities and repository interfaces.",
             },
             {
               id: "go-usecase",
@@ -146,8 +215,16 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
               id: "go-delivery",
               name: "delivery",
               type: "folder",
-              rules: "HTTP handlers, gRPC services, and middleware controllers.",
-              children: [{ id: "go-http", name: "http", type: "folder", rules: "REST route handlers" }],
+              rules:
+                "HTTP handlers, gRPC services, and middleware controllers.",
+              children: [
+                {
+                  id: "go-http",
+                  name: "http",
+                  type: "folder",
+                  rules: "REST route handlers",
+                },
+              ],
             },
             {
               id: "go-repository",
@@ -161,9 +238,15 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           id: "go-pkg",
           name: "pkg",
           type: "folder",
-          rules: "Public libraries and reusable utilities safe for external packages.",
+          rules:
+            "Public libraries and reusable utilities safe for external packages.",
         },
-        { id: "go-mod", name: "go.mod", type: "file", rules: "Go dependencies definition" },
+        {
+          id: "go-mod",
+          name: "go.mod",
+          type: "file",
+          rules: "Go dependencies definition",
+        },
       ],
     },
   },
@@ -171,13 +254,18 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
     id: "react",
     name: "React (Vite)",
     category: "frontend",
-    description: "Vite + React SPA, modular features, custom hooks, atomic components",
+    description:
+      "Vite + React SPA, modular features, custom hooks, atomic components",
     defaultNaming: "kebab-case",
     defaultRules: {
       namingConvention: "kebab-case",
       stateManagement: "TanStack Query + Zustand",
       styling: "Tailwind CSS",
-      principles: ["Feature-driven", "Component colocation", "Separation of concerns"],
+      principles: [
+        "Feature-driven",
+        "Component colocation",
+        "Separation of concerns",
+      ],
     },
     initialTree: {
       id: "root-react",
@@ -196,14 +284,22 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           id: "react-features",
           name: "features",
           type: "folder",
-          rules: "Domain features (dashboard, auth, settings) with components and hooks.",
+          rules:
+            "Domain features (dashboard, auth, settings) with components and hooks.",
         },
         {
           id: "react-components",
           name: "components",
           type: "folder",
           rules: "Shared reusable UI buttons, inputs, modals.",
-          children: [{ id: "react-ui", name: "ui", type: "folder", rules: "Primitive components" }],
+          children: [
+            {
+              id: "react-ui",
+              name: "ui",
+              type: "folder",
+              rules: "Primitive components",
+            },
+          ],
         },
         {
           id: "react-hooks",
@@ -217,8 +313,18 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           type: "folder",
           rules: "React Router route configuration and protected route guards.",
         },
-        { id: "react-app", name: "App.tsx", type: "file", rules: "Root App component" },
-        { id: "react-main", name: "main.tsx", type: "file", rules: "Vite DOM entrypoint" },
+        {
+          id: "react-app",
+          name: "App.tsx",
+          type: "file",
+          rules: "Root App component",
+        },
+        {
+          id: "react-main",
+          name: "main.tsx",
+          type: "file",
+          rules: "Vite DOM entrypoint",
+        },
       ],
     },
   },
@@ -226,13 +332,18 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
     id: "vue",
     name: "Vue (Vite/Nuxt)",
     category: "frontend",
-    description: "Vue 3 Composition API, Pinia stores, composables, modular views",
+    description:
+      "Vue 3 Composition API, Pinia stores, composables, modular views",
     defaultNaming: "kebab-case",
     defaultRules: {
       namingConvention: "kebab-case",
       stateManagement: "Pinia",
       styling: "Tailwind CSS",
-      principles: ["Composition API", "Composables isolation", "Clean SFC components"],
+      principles: [
+        "Composition API",
+        "Composables isolation",
+        "Clean SFC components",
+      ],
     },
     initialTree: {
       id: "root-vue",
@@ -246,13 +357,21 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           name: "components",
           type: "folder",
           rules: "Reusable Vue Single File Components (SFC).",
-          children: [{ id: "vue-common", name: "common", type: "folder", rules: "Shared primitives" }],
+          children: [
+            {
+              id: "vue-common",
+              name: "common",
+              type: "folder",
+              rules: "Shared primitives",
+            },
+          ],
         },
         {
           id: "vue-composables",
           name: "composables",
           type: "folder",
-          rules: "Reusable stateful business logic functions (useAuth, useFetch).",
+          rules:
+            "Reusable stateful business logic functions (useAuth, useFetch).",
         },
         {
           id: "vue-stores",
@@ -266,8 +385,18 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           type: "folder",
           rules: "Page views mapped to Vue Router routes.",
         },
-        { id: "vue-app", name: "App.vue", type: "file", rules: "Root Vue component" },
-        { id: "vue-main", name: "main.ts", type: "file", rules: "Vue app instantiation entrypoint" },
+        {
+          id: "vue-app",
+          name: "App.vue",
+          type: "file",
+          rules: "Root Vue component",
+        },
+        {
+          id: "vue-main",
+          name: "main.ts",
+          type: "file",
+          rules: "Vue app instantiation entrypoint",
+        },
       ],
     },
   },
@@ -275,13 +404,17 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
     id: "express",
     name: "Express.js",
     category: "backend",
-    description: "Node.js REST API, layered controllers, services, repositories, middlewares",
+    description:
+      "Node.js REST API, layered controllers, services, repositories, middlewares",
     defaultNaming: "kebab-case",
     defaultRules: {
       namingConvention: "kebab-case",
       stateManagement: "N/A (Backend)",
       styling: "N/A",
-      principles: ["Layered Architecture (Controller -> Service -> Model)", "Centralized error handling"],
+      principles: [
+        "Layered Architecture (Controller -> Service -> Model)",
+        "Centralized error handling",
+      ],
     },
     initialTree: {
       id: "root-express",
@@ -320,8 +453,18 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           type: "folder",
           rules: "Auth guards, rate limiters, validation, and error handlers.",
         },
-        { id: "exp-app", name: "app.ts", type: "file", rules: "Express app configuration" },
-        { id: "exp-server", name: "server.ts", type: "file", rules: "HTTP listener entrypoint" },
+        {
+          id: "exp-app",
+          name: "app.ts",
+          type: "file",
+          rules: "Express app configuration",
+        },
+        {
+          id: "exp-server",
+          name: "server.ts",
+          type: "file",
+          rules: "HTTP listener entrypoint",
+        },
       ],
     },
   },
@@ -329,13 +472,18 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
     id: "nestjs",
     name: "NestJS",
     category: "backend",
-    description: "Enterprise TypeScript framework, modular architecture, dependency injection",
+    description:
+      "Enterprise TypeScript framework, modular architecture, dependency injection",
     defaultNaming: "kebab-case",
     defaultRules: {
       namingConvention: "kebab-case",
       stateManagement: "N/A (Backend)",
       styling: "N/A",
-      principles: ["Modular Architecture", "Dependency Injection", "Decorators & DTO Validation"],
+      principles: [
+        "Modular Architecture",
+        "Dependency Injection",
+        "Decorators & DTO Validation",
+      ],
     },
     initialTree: {
       id: "root-nestjs",
@@ -356,9 +504,24 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
               type: "folder",
               rules: "Authentication feature module",
               children: [
-                { id: "nest-auth-ctrl", name: "auth.controller.ts", type: "file", rules: "HTTP routes" },
-                { id: "nest-auth-srv", name: "auth.service.ts", type: "file", rules: "Auth business logic" },
-                { id: "nest-auth-mod", name: "auth.module.ts", type: "file", rules: "Nest module definition" },
+                {
+                  id: "nest-auth-ctrl",
+                  name: "auth.controller.ts",
+                  type: "file",
+                  rules: "HTTP routes",
+                },
+                {
+                  id: "nest-auth-srv",
+                  name: "auth.service.ts",
+                  type: "file",
+                  rules: "Auth business logic",
+                },
+                {
+                  id: "nest-auth-mod",
+                  name: "auth.module.ts",
+                  type: "file",
+                  rules: "Nest module definition",
+                },
               ],
             },
           ],
@@ -369,8 +532,18 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           type: "folder",
           rules: "Cross-cutting guards, decorators, interceptors, and filters.",
         },
-        { id: "nest-app-module", name: "app.module.ts", type: "file", rules: "Root module" },
-        { id: "nest-main", name: "main.ts", type: "file", rules: "NestFactory bootstrap" },
+        {
+          id: "nest-app-module",
+          name: "app.module.ts",
+          type: "file",
+          rules: "Root module",
+        },
+        {
+          id: "nest-main",
+          name: "main.ts",
+          type: "file",
+          rules: "NestFactory bootstrap",
+        },
       ],
     },
   },
@@ -378,13 +551,18 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
     id: "laravel",
     name: "Laravel",
     category: "backend",
-    description: "PHP Modern Framework, MVC architecture, Eloquent ORM, Service-Repository pattern",
+    description:
+      "PHP Modern Framework, MVC architecture, Eloquent ORM, Service-Repository pattern",
     defaultNaming: "kebab-case",
     defaultRules: {
       namingConvention: "PascalCase",
       stateManagement: "N/A",
       styling: "Blade / Tailwind CSS",
-      principles: ["MVC Pattern", "Service-Repository pattern", "Form Request validation"],
+      principles: [
+        "MVC Pattern",
+        "Service-Repository pattern",
+        "Form Request validation",
+      ],
     },
     initialTree: {
       id: "root-laravel",
@@ -399,9 +577,24 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           type: "folder",
           rules: "Controllers, Middleware, and Form Requests.",
           children: [
-            { id: "lar-controllers", name: "Controllers", type: "folder", rules: "Resource controllers" },
-            { id: "lar-requests", name: "Requests", type: "folder", rules: "Form validation rules" },
-            { id: "lar-middleware", name: "Middleware", type: "folder", rules: "HTTP filters" },
+            {
+              id: "lar-controllers",
+              name: "Controllers",
+              type: "folder",
+              rules: "Resource controllers",
+            },
+            {
+              id: "lar-requests",
+              name: "Requests",
+              type: "folder",
+              rules: "Form validation rules",
+            },
+            {
+              id: "lar-middleware",
+              name: "Middleware",
+              type: "folder",
+              rules: "HTTP filters",
+            },
           ],
         },
         {
@@ -423,13 +616,18 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
     id: "fastapi",
     name: "FastAPI",
     category: "backend",
-    description: "Modern Python API, Pydantic schemas, dependency injection, async routers",
+    description:
+      "Modern Python API, Pydantic schemas, dependency injection, async routers",
     defaultNaming: "kebab-case",
     defaultRules: {
       namingConvention: "kebab-case",
       stateManagement: "N/A",
       styling: "N/A",
-      principles: ["Pydantic Data Validation", "Dependency Injection", "Async I/O"],
+      principles: [
+        "Pydantic Data Validation",
+        "Dependency Injection",
+        "Async I/O",
+      ],
     },
     initialTree: {
       id: "root-fastapi",
@@ -449,7 +647,14 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
               name: "v1",
               type: "folder",
               rules: "API v1 route handlers",
-              children: [{ id: "fa-endpoints", name: "endpoints", type: "folder", rules: "Resource endpoints" }],
+              children: [
+                {
+                  id: "fa-endpoints",
+                  name: "endpoints",
+                  type: "folder",
+                  rules: "Resource endpoints",
+                },
+              ],
             },
           ],
         },
@@ -457,7 +662,8 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           id: "fa-core",
           name: "core",
           type: "folder",
-          rules: "Application config, security, database sessions, and constants.",
+          rules:
+            "Application config, security, database sessions, and constants.",
         },
         {
           id: "fa-models",
@@ -477,7 +683,12 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           type: "folder",
           rules: "Business logic and third-party integrations.",
         },
-        { id: "fa-main", name: "main.py", type: "file", rules: "FastAPI app entrypoint" },
+        {
+          id: "fa-main",
+          name: "main.py",
+          type: "file",
+          rules: "FastAPI app entrypoint",
+        },
       ],
     },
   },
@@ -485,13 +696,18 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
     id: "django",
     name: "Django",
     category: "fullstack",
-    description: "High-level Python web framework, modular apps, Django REST Framework, ORM",
+    description:
+      "High-level Python web framework, modular apps, Django REST Framework, ORM",
     defaultNaming: "kebab-case",
     defaultRules: {
       namingConvention: "kebab-case",
       stateManagement: "N/A",
       styling: "Django Templates / Tailwind",
-      principles: ["Don't Repeat Yourself (DRY)", "Pluggable apps architecture", "Fat models, skinny views"],
+      principles: [
+        "Don't Repeat Yourself (DRY)",
+        "Pluggable apps architecture",
+        "Fat models, skinny views",
+      ],
     },
     initialTree: {
       id: "root-django",
@@ -512,9 +728,24 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
               type: "folder",
               rules: "Authentication and user management app",
               children: [
-                { id: "dj-acc-models", name: "models.py", type: "file", rules: "Database tables" },
-                { id: "dj-acc-views", name: "views.py", type: "file", rules: "View logic / API ViewSets" },
-                { id: "dj-acc-urls", name: "urls.py", type: "file", rules: "Route patterns" },
+                {
+                  id: "dj-acc-models",
+                  name: "models.py",
+                  type: "file",
+                  rules: "Database tables",
+                },
+                {
+                  id: "dj-acc-views",
+                  name: "views.py",
+                  type: "file",
+                  rules: "View logic / API ViewSets",
+                },
+                {
+                  id: "dj-acc-urls",
+                  name: "urls.py",
+                  type: "file",
+                  rules: "Route patterns",
+                },
               ],
             },
           ],
@@ -525,7 +756,12 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           type: "folder",
           rules: "Settings, wsgi, asgi, and root url routing.",
         },
-        { id: "dj-manage", name: "manage.py", type: "file", rules: "Django CLI runner script" },
+        {
+          id: "dj-manage",
+          name: "manage.py",
+          type: "file",
+          rules: "Django CLI runner script",
+        },
       ],
     },
   },
@@ -533,13 +769,18 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
     id: "flutter",
     name: "Flutter",
     category: "mobile",
-    description: "Cross-platform mobile & web, BLoC/Riverpod state, clean feature architecture",
+    description:
+      "Cross-platform mobile & web, BLoC/Riverpod state, clean feature architecture",
     defaultNaming: "kebab-case",
     defaultRules: {
       namingConvention: "kebab-case",
       stateManagement: "Bloc / Riverpod",
       styling: "Material 3 / Cupertino widgets",
-      principles: ["Clean Architecture (Data, Domain, Presentation)", "Immutability", "Feature First"],
+      principles: [
+        "Clean Architecture (Data, Domain, Presentation)",
+        "Immutability",
+        "Feature First",
+      ],
     },
     initialTree: {
       id: "root-flutter",
@@ -558,7 +799,8 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
           id: "fl-features",
           name: "features",
           type: "folder",
-          rules: "Feature modules organized into presentation, domain, and data layers.",
+          rules:
+            "Feature modules organized into presentation, domain, and data layers.",
           children: [
             {
               id: "fl-feat-home",
@@ -566,14 +808,34 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
               type: "folder",
               rules: "Home screen domain",
               children: [
-                { id: "fl-home-data", name: "data", type: "folder", rules: "Data sources and models" },
-                { id: "fl-home-domain", name: "domain", type: "folder", rules: "Entities and repositories" },
-                { id: "fl-home-pres", name: "presentation", type: "folder", rules: "Widgets and Bloc/Cubit" },
+                {
+                  id: "fl-home-data",
+                  name: "data",
+                  type: "folder",
+                  rules: "Data sources and models",
+                },
+                {
+                  id: "fl-home-domain",
+                  name: "domain",
+                  type: "folder",
+                  rules: "Entities and repositories",
+                },
+                {
+                  id: "fl-home-pres",
+                  name: "presentation",
+                  type: "folder",
+                  rules: "Widgets and Bloc/Cubit",
+                },
               ],
             },
           ],
         },
-        { id: "fl-main", name: "main.dart", type: "file", rules: "Flutter runApp entrypoint" },
+        {
+          id: "fl-main",
+          name: "main.dart",
+          type: "file",
+          rules: "Flutter runApp entrypoint",
+        },
       ],
     },
   },
@@ -581,7 +843,8 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
     id: "custom",
     name: "Custom (Blank / Zero)",
     category: "custom",
-    description: "Start completely from scratch with your own framework, rules, and root folder.",
+    description:
+      "Start completely from scratch with your own framework, rules, and root folder.",
     defaultNaming: "kebab-case",
     defaultRules: {
       namingConvention: "kebab-case",
@@ -604,7 +867,9 @@ export const POPULAR_FRAMEWORKS: FrameworkOption[] = [
 export const getFrameworkTemplate = (idOrName: string): FrameworkOption => {
   const normalized = idOrName.toLowerCase().replace(/[^a-z0-9]/g, "");
   const found = POPULAR_FRAMEWORKS.find(
-    (f) => f.id === normalized || f.name.toLowerCase().replace(/[^a-z0-9]/g, "") === normalized,
+    (f) =>
+      f.id === normalized ||
+      f.name.toLowerCase().replace(/[^a-z0-9]/g, "") === normalized,
   );
   if (found) return found;
 

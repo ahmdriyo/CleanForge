@@ -157,7 +157,7 @@ export const GenerateMcpSection = ({
         render={
           <Button
             size="sm"
-            className="rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-md"
+            className="rounded-full bg-linear-to-br from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-md"
           >
             <Plug className="w-4 h-4" /> Generate MCP
           </Button>
@@ -166,7 +166,7 @@ export const GenerateMcpSection = ({
       <DialogContent className="bg-white/95 backdrop-blur-2xl border border-white/80 rounded-[24px] w-[95vw] sm:max-w-2xl max-h-[88vh] overflow-y-auto overflow-x-hidden p-5 sm:p-6 gap-4 sm:gap-5">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-[18px]">
-            <span className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center">
+            <span className="w-8 h-8 rounded-full bg-linear-to-br from-violet-600 to-indigo-600 flex items-center justify-center">
               <Plug className="w-4 h-4 text-white" />
             </span>
             Generate Private MCP Endpoint
@@ -223,7 +223,7 @@ export const GenerateMcpSection = ({
               <Button
                 onClick={handleGenerate}
                 disabled={isGenerating || isNew}
-                className="w-full rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 h-10"
+                className="w-full rounded-full bg-linear-to-br from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 h-10"
               >
                 {isGenerating ? (
                   <>
@@ -241,7 +241,7 @@ export const GenerateMcpSection = ({
           ) : (
             <>
               {/* Endpoint */}
-              <div className="bg-gradient-to-br from-violet-50 to-white border border-violet-200 rounded-xl p-4 space-y-3">
+              <div className="bg-linear-to-br from-violet-50 to-white border border-violet-200 rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                     <ExternalLink className="w-3.5 h-3.5 text-violet-600" />{" "}

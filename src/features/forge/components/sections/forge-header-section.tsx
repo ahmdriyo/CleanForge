@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { GenerateMcpSection } from "./generate-mcp-section";
-import { Loader2, Save, Trash2, ChevronDown, Plus } from "lucide-react";
+import { Loader2, Save, Trash2, Plus } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -21,7 +20,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { POPULAR_FRAMEWORKS, type FrameworkOption } from "@/const/framework-templates";
+import {
+  POPULAR_FRAMEWORKS,
+  type FrameworkOption,
+} from "@/const/framework-templates";
 
 export const ForgeHeaderSection = ({
   standardName,
@@ -50,13 +52,16 @@ export const ForgeHeaderSection = ({
   const [customNameInput, setCustomNameInput] = useState("");
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
-  useEffect(() => {
+  // Sync state during render when props change without effect cascade
+  const [prevProps, setPrevProps] = useState({ standardName, framework });
+  if (
+    prevProps.standardName !== standardName ||
+    prevProps.framework !== framework
+  ) {
+    setPrevProps({ standardName, framework });
     setName(standardName);
-  }, [standardName]);
-
-  useEffect(() => {
     setCurrentFramework(framework);
-  }, [framework]);
+  }
 
   const isNew = !standardId || standardId === "new";
 
@@ -84,7 +89,8 @@ export const ForgeHeaderSection = ({
   };
 
   const activeFrameworkName =
-    POPULAR_FRAMEWORKS.find((f) => f.id === currentFramework)?.name || currentFramework;
+    POPULAR_FRAMEWORKS.find((f) => f.id === currentFramework)?.name ||
+    currentFramework;
 
   return (
     <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-2xl px-4 py-2.5 flex flex-col lg:flex-row gap-3 lg:items-center justify-between mb-4 shadow-sm">
@@ -106,26 +112,43 @@ export const ForgeHeaderSection = ({
             }
             onValueChange={handleFrameworkChange}
           >
-            <SelectTrigger className="h-8 bg-white/85 border-white/70 rounded-full text-xs font-medium px-3 gap-1.5 text-slate-800 shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-violet-600 inline-block mr-1" />
+            <SelectTrigger className="h-9 bg-white/90 hover:bg-white border-white/80 rounded-full text-sm font-medium px-3.5 py-2 gap-2 text-slate-800 shadow-xs cursor-pointer">
+              <span className="w-2.5 h-2.5 rounded-full bg-violet-600 inline-block mr-0.5" />
               <SelectValue>{activeFrameworkName}</SelectValue>
             </SelectTrigger>
-            <SelectContent className="max-h-72 w-56 bg-white/95 backdrop-blur-xl border-white/70 rounded-2xl shadow-xl">
-              <div className="px-2 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            <SelectContent
+              side="bottom"
+              sideOffset={6}
+              align="start"
+              alignItemWithTrigger={false}
+              className="max-h-80 w-92 p-2 bg-white/95 backdrop-blur-2xl border border-white/80 rounded-2xl shadow-2xl z-50"
+            >
+              <div className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Popular Frameworks (10)
               </div>
               {POPULAR_FRAMEWORKS.filter((f) => f.id !== "custom").map((f) => (
-                <SelectItem key={f.id} value={f.id} className="text-xs rounded-lg py-2">
+                <SelectItem
+                  key={f.id}
+                  value={f.id}
+                  className="text-sm rounded-xl py-2.5 px-3 hover:bg-violet-50/80 cursor-pointer"
+                >
                   <div className="flex flex-col text-left">
-                    <span className="font-medium text-slate-800">{f.name}</span>
-                    <span className="text-[10px] text-slate-400 capitalize">{f.category}</span>
+                    <span className="font-semibold text-slate-900 text-sm">
+                      {f.name}
+                    </span>
+                    <span className="text-xs text-slate-500 capitalize mt-0.5">
+                      {f.category} • {f.description.slice(0, 32)}...
+                    </span>
                   </div>
                 </SelectItem>
               ))}
-              <div className="border-t border-slate-100 my-1" />
-              <SelectItem value="custom" className="text-xs rounded-lg py-2 text-violet-700 font-medium">
-                <span className="flex items-center gap-1.5">
-                  <Plus className="w-3.5 h-3.5" /> Start from 0 (Custom Tool)
+              <div className="border-t border-slate-100 my-1.5" />
+              <SelectItem
+                value="custom"
+                className="text-sm rounded-xl py-2.5 px-3 text-violet-700 font-semibold hover:bg-violet-50 cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Plus className="w-4 h-4" /> Start from 0 (Custom Tool)
                 </span>
               </SelectItem>
             </SelectContent>
@@ -133,9 +156,13 @@ export const ForgeHeaderSection = ({
         </div>
 
         {lastSaved ? (
-          <span className="text-xs text-slate-400 hidden xl:inline">Saved {lastSaved}</span>
+          <span className="text-xs text-slate-400 hidden xl:inline">
+            Saved {lastSaved}
+          </span>
         ) : (
-          <span className="text-xs text-amber-600 hidden xl:inline font-medium">Draft</span>
+          <span className="text-xs text-amber-600 hidden xl:inline font-medium">
+            Draft
+          </span>
         )}
       </div>
 
@@ -167,7 +194,12 @@ export const ForgeHeaderSection = ({
                 </DialogTitle>
               </DialogHeader>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Are you sure you want to delete <span className="font-semibold text-slate-800">&quot;{name}&quot;</span>? This will permanently delete its architecture tree, journal history, and revoke any generated MCP tokens.
+                Are you sure you want to delete{" "}
+                <span className="font-semibold text-slate-800">
+                  &quot;{name}&quot;
+                </span>
+                ? This will permanently delete its architecture tree, journal
+                history, and revoke any generated MCP tokens.
               </p>
               <div className="flex gap-2 justify-end mt-4">
                 <Button
@@ -236,7 +268,8 @@ export const ForgeHeaderSection = ({
                 autoFocus
               />
               <p className="text-[11px] text-slate-400 mt-1">
-                Creates an empty blank project root where you can freely structure folders and rules from scratch.
+                Creates an empty blank project root where you can freely
+                structure folders and rules from scratch.
               </p>
             </div>
             <div className="flex gap-2 justify-end">

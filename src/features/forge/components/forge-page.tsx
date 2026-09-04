@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ForgeHeaderSection } from "./sections/forge-header-section";
 import { ChatPanel } from "./chat-panel";
@@ -19,6 +19,13 @@ import {
   ResizableHandle,
 } from "@/components/ui/resizable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { StandardService } from "@/services/standard.service";
@@ -73,9 +80,17 @@ export const ForgePage = ({
   const [selected, setSelected] = useState<FolderNode | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [frameworkConfirmModalOpen, setFrameworkConfirmModalOpen] =
+    useState(false);
+  const [pendingFramework, setPendingFramework] = useState<{
+    option: FrameworkOption;
+    customName?: string;
+  } | null>(null);
 
-  // Sync state with fetched standard
-  useEffect(() => {
+  // Sync state with fetched standard during render without effect cascade
+  const [prevStandard, setPrevStandard] = useState(standard);
+  if (standard !== prevStandard) {
+    setPrevStandard(standard);
     if (standard) {
       if (standard.name) setCurrentName(standard.name);
       if (standard.framework) setCurrentFramework(standard.framework);
@@ -85,15 +100,8 @@ export const ForgePage = ({
           setSelected(standard.folderStructure);
         }
       }
-    } else if (isNew) {
-      const defaultTpl = POPULAR_FRAMEWORKS[0];
-      setCurrentTree(defaultTpl.initialTree);
-      setCurrentFramework(defaultTpl.id);
-      if (!selected) {
-        setSelected(defaultTpl.initialTree);
-      }
     }
-  }, [standard, isNew]);
+  }
 
   // Keep selected node in sync when currentTree changes
   const handleSelectNode = useCallback((node: FolderNode) => {
@@ -170,19 +178,29 @@ export const ForgePage = ({
     [currentTree, isNew, standardId, selected, handleUpdateTree, queryClient],
   );
 
-  const handleSelectFramework = (option: FrameworkOption, customName?: string) => {
-    const finalFrameworkName = customName || option.id;
-    setCurrentFramework(finalFrameworkName);
+  const handleSelectFramework = (
+    option: FrameworkOption,
+    customName?: string,
+  ) => {
+    setPendingFramework({ option, customName });
+    setFrameworkConfirmModalOpen(true);
+  };
 
-    // If new or user wants template structure
-    if (confirm(`Switch project structure template to "${customName || option.name}"? This will load its initial standard tree.`)) {
-      setCurrentTree(option.initialTree);
-      setSelected(option.initialTree);
-      if (isNew) {
-        setCurrentName(`My ${customName || option.name} Standard`);
-      }
-      toast.info(`Switched template to ${customName || option.name}`);
+  const handleConfirmSwitchFramework = () => {
+    if (!pendingFramework) return;
+    const { option, customName } = pendingFramework;
+    const finalFrameworkName = customName || option.id;
+    const displayName = customName || option.name;
+
+    setCurrentFramework(finalFrameworkName);
+    setCurrentTree(option.initialTree);
+    setSelected(option.initialTree);
+    if (isNew) {
+      setCurrentName(`My ${displayName} Standard`);
     }
+    toast.info(`Switched template to ${displayName}`);
+    setFrameworkConfirmModalOpen(false);
+    setPendingFramework(null);
   };
 
   const handleDeleteForge = async () => {
@@ -205,7 +223,10 @@ export const ForgePage = ({
     }
   };
 
-  const handleSaveStandard = async (nameToSave?: string, frameworkToSave?: string) => {
+  const handleSaveStandard = async (
+    nameToSave?: string,
+    frameworkToSave?: string,
+  ) => {
     const finalName = (nameToSave || currentName).trim();
     const finalFramework = frameworkToSave || currentFramework;
     if (!finalName) {
@@ -345,7 +366,7 @@ export const ForgePage = ({
     : null;
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex flex-col flex-1 h-[calc(100vh-8.5rem)] min-h-145">
       <ForgeHeaderSection
         standardName={currentName}
         standardId={standardId}
@@ -359,13 +380,16 @@ export const ForgePage = ({
       />
 
       {/* Desktop: 3 panels resizable */}
-      <div className="hidden lg:block flex-1 min-h-0">
+      <div className="hidden lg:block flex-1 min-h-0 h-full overflow-hidden">
         <ResizablePanelGroup
           orientation="horizontal"
-          className="h-full rounded-[20px] gap-2"
+          className="h-full w-full rounded-[20px] gap-2"
         >
-          <ResizableHandle withHandle className="bg-transparent" />
-          <ResizablePanel defaultSize={35} minSize={25}>
+          <ResizablePanel
+            defaultSize={35}
+            minSize={25}
+            className="min-h-0 h-full overflow-hidden"
+          >
             <VisualTree
               selectedId={selected?.id || null}
               onSelect={handleSelectNode}
@@ -374,7 +398,11 @@ export const ForgePage = ({
               standardId={standardId}
             />
           </ResizablePanel>
-          <ResizablePanel defaultSize={35} minSize={25}>
+          <ResizablePanel
+            defaultSize={35}
+            minSize={25}
+            className="min-h-0 h-full overflow-hidden"
+          >
             <FolderInspector
               key={selected?.id ?? "none"}
               node={selected}
@@ -383,7 +411,11 @@ export const ForgePage = ({
               isSaving={isSaving}
             />
           </ResizablePanel>
-          <ResizablePanel defaultSize={30} minSize={20}>
+          <ResizablePanel
+            defaultSize={30}
+            minSize={20}
+            className="min-h-0 h-full overflow-hidden"
+          >
             <ChatPanel standardId={standardId} onApply={handleApplyFromChat} />
           </ResizablePanel>
         </ResizablePanelGroup>
@@ -436,6 +468,53 @@ export const ForgePage = ({
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Custom Confirmation Modal for Switching Framework Template */}
+      <Dialog
+        open={frameworkConfirmModalOpen}
+        onOpenChange={(open) => {
+          setFrameworkConfirmModalOpen(open);
+          if (!open) setPendingFramework(null);
+        }}
+      >
+        <DialogContent className="bg-white/95 backdrop-blur-2xl border-white/80 rounded-2xl w-[92vw] sm:max-w-md p-5">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold text-slate-900">
+              Switch Framework Template?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-slate-500 leading-relaxed mt-1">
+            Switching to{" "}
+            <span className="font-semibold text-slate-800">
+              &quot;
+              {pendingFramework?.customName || pendingFramework?.option.name}
+              &quot;
+            </span>{" "}
+            will load its recommended clean architecture structure. Any unsaved
+            folder modifications will be replaced.
+          </p>
+          <div className="flex gap-2 justify-end mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full text-xs h-8"
+              onClick={() => {
+                setFrameworkConfirmModalOpen(false);
+                setPendingFramework(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className="rounded-full bg-violet-600 hover:bg-violet-700 text-white text-xs h-8 px-4"
+              onClick={handleConfirmSwitchFramework}
+            >
+              Switch Template
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

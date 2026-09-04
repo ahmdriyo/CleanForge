@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { FolderNode } from "@/types/standard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   Copy,
@@ -34,8 +40,12 @@ export const FolderInspector = ({
   const [description, setDescription] = useState(node?.description || "");
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
-  useEffect(() => {
+  // Sync state during render when node prop changes without effect cascade
+  const [prevNode, setPrevNode] = useState(node);
+  if (node !== prevNode) {
+    setPrevNode(node);
     if (node) {
       setName(node.name || "");
       setRules(node.rules || "");
@@ -43,7 +53,7 @@ export const FolderInspector = ({
       setExampleCode(node.exampleCode || "");
       setDescription(node.description || "");
     }
-  }, [node]);
+  }
 
   if (!node) {
     return (
@@ -138,14 +148,32 @@ export const FolderInspector = ({
     toast.info("Reset to original values");
   };
 
-  const handleDelete = () => {
+  const handleDeleteClick = () => {
     if (node.id === "root") {
       toast.error("Cannot delete root folder");
       return;
     }
-    if (confirm(`Are you sure you want to delete ${node.name}?`)) {
-      onDeleteNode?.(node.id);
-      toast.success(`Deleted ${node.name}`);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setDeleteConfirmOpen(false);
+    onDeleteNode?.(node.id);
+    toast.success(`Deleted ${node.name}`);
+  };
+
+  const handleCodeKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const target = e.currentTarget;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      const value = target.value;
+      const newValue = value.substring(0, start) + "  " + value.substring(end);
+      setExampleCode(newValue);
+      setTimeout(() => {
+        target.selectionStart = target.selectionEnd = start + 2;
+      }, 0);
     }
   };
 
@@ -159,22 +187,58 @@ export const FolderInspector = ({
           </p>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-xs font-mono text-slate-600 bg-white/75 rounded-full px-2.5 py-0.5 border border-white/70 truncate max-w-[140px]">
+          <span className="text-xs font-mono text-slate-600 bg-white/75 rounded-full px-2.5 py-0.5 border border-white/70 truncate max-w-35">
             {node.name}
           </span>
           {node.id !== "root" && (
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full"
+              className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full cursor-pointer"
               title="Delete node"
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
             >
               <Trash2 className="w-3.5 h-3.5" />
             </Button>
           )}
         </div>
       </div>
+
+      {/* Custom Confirmation Modal for Deleting Node */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="bg-white/95 backdrop-blur-2xl border-white/80 rounded-2xl w-[92vw] sm:max-w-md p-5">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold text-slate-900">
+              Delete {node.type === "folder" ? "Folder" : "File"}?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-slate-500 leading-relaxed mt-1">
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-slate-800">
+              &quot;{node.name}&quot;
+            </span>
+            ? This will remove it and any nested contents from your project
+            structure.
+          </p>
+          <div className="flex gap-2 justify-end mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full text-xs h-8"
+              onClick={() => setDeleteConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className="rounded-full bg-red-600 hover:bg-red-700 text-white text-xs h-8"
+              onClick={handleConfirmDelete}
+            >
+              Confirm Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="space-y-1.5">
         <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
@@ -197,37 +261,25 @@ export const FolderInspector = ({
           value={rules}
           onChange={(e) => setRules(e.target.value)}
           placeholder="e.g., Each feature in its own folder. No cross-feature imports."
-          className="bg-white/80 backdrop-blur border-white/70 rounded-xl min-h-[70px] text-xs focus-visible:ring-violet-500"
+          className="bg-white/80 backdrop-blur border-white/70 rounded-xl min-h-17.5 text-xs focus-visible:ring-violet-500"
         />
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-          Naming Convention
-        </Label>
-        <div className="flex gap-2">
-          <Input
-            value={naming}
-            onChange={(e) => setNaming(e.target.value)}
-            className="bg-white/80 rounded-xl text-xs"
-            placeholder="kebab-case"
-          />
-          <span className="bg-violet-100 text-violet-700 rounded-full text-xs px-3 py-1.5 border border-violet-200 shrink-0 self-center">
-            {naming || "kebab-case"}
-          </span>
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-            Example Code
-          </Label>
+          <div className="flex items-center gap-1.5">
+            <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+              Example Code
+            </Label>
+            <span className="text-[10px] text-slate-400 font-mono bg-white/70 px-1.5 py-0.5 rounded border border-white/60">
+              editable
+            </span>
+          </div>
           <div className="flex gap-1">
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 text-xs px-2 rounded-full"
+              className="h-6 text-xs px-2 rounded-full cursor-pointer"
               onClick={handleCopy}
               disabled={!exampleCode}
             >
@@ -240,7 +292,7 @@ export const FolderInspector = ({
             </Button>
             <Button
               size="sm"
-              className="h-6 text-xs px-2.5 rounded-full bg-violet-100 text-violet-700 hover:bg-violet-200 border border-violet-200"
+              className="h-6 text-xs px-2.5 rounded-full bg-violet-100 text-violet-700 hover:bg-violet-200 border border-violet-200 cursor-pointer"
               onClick={handleGenerate}
               disabled={isGenerating}
             >
@@ -253,10 +305,15 @@ export const FolderInspector = ({
             </Button>
           </div>
         </div>
-        <pre className="bg-slate-900 rounded-xl p-3 text-xs font-mono text-violet-100 overflow-y-auto overflow-x-hidden max-h-44 whitespace-pre-wrap break-all border border-slate-800 select-all">
-          {exampleCode ||
-            "// No example yet. Click 'Generate with Gemini' to create boilerplate."}
-        </pre>
+        <Textarea
+          value={exampleCode}
+          onChange={(e) => setExampleCode(e.target.value)}
+          onKeyDown={handleCodeKeyDown}
+          placeholder="// Type your code here manually or click 'Generate with Gemini' to create boilerplate..."
+          rows={7}
+          spellCheck={false}
+          className="bg-slate-900 rounded-xl p-3 text-xs font-mono text-violet-100 border border-slate-800 placeholder:text-slate-500 min-h-36 max-h-60 custom-scrollbar resize-y focus-visible:ring-1 focus-visible:ring-violet-400 leading-relaxed"
+        />
       </div>
 
       <div className="space-y-1.5">

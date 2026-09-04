@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "@/server/auth/verify-id-token";
-import { getStandardById, updateStandard, deleteStandard } from "@/server/repository/standard-repository";
+import {
+  getStandardById,
+  updateStandard,
+  deleteStandard,
+} from "@/server/repository/standard-repository";
 import type { FolderNode } from "@/types/standard";
 
 const folderNodeSchema: z.ZodType<FolderNode> = z.lazy(() =>
@@ -33,22 +37,35 @@ const updateSchema = z.object({
   mcpStatus: z.enum(["active", "inactive", "draft"]).optional(),
 });
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const auth = await requireAuth(req);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;
   try {
     const standard = await getStandardById(auth.uid, id);
-    if (!standard) return NextResponse.json({ success: false, message: "Standard not found" }, { status: 404 });
+    if (!standard)
+      return NextResponse.json(
+        { success: false, message: "Standard not found" },
+        { status: 404 },
+      );
     return NextResponse.json({ success: true, data: standard });
   } catch (e) {
     console.error("GET /api/standards/[id] error", e);
-    return NextResponse.json({ success: false, message: "Failed to fetch standard" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Failed to fetch standard" },
+      { status: 500 },
+    );
   }
 }
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const auth = await requireAuth(req);
   if ("error" in auth) return auth.error;
 
@@ -58,30 +75,51 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const parsed = updateSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: "Validation failed", errors: parsed.error.flatten().fieldErrors },
+        {
+          success: false,
+          message: "Validation failed",
+          errors: parsed.error.flatten().fieldErrors,
+        },
         { status: 400 },
       );
     }
     const updated = await updateStandard(auth.uid, id, parsed.data);
-    if (!updated) return NextResponse.json({ success: false, message: "Standard not found" }, { status: 404 });
+    if (!updated)
+      return NextResponse.json(
+        { success: false, message: "Standard not found" },
+        { status: 404 },
+      );
     return NextResponse.json({ success: true, data: updated });
   } catch (e) {
     console.error("PATCH /api/standards/[id] error", e);
-    return NextResponse.json({ success: false, message: "Failed to update standard" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Failed to update standard" },
+      { status: 500 },
+    );
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const auth = await requireAuth(req);
   if ("error" in auth) return auth.error;
 
   const { id } = await params;
   try {
     const ok = await deleteStandard(auth.uid, id);
-    if (!ok) return NextResponse.json({ success: false, message: "Standard not found" }, { status: 404 });
+    if (!ok)
+      return NextResponse.json(
+        { success: false, message: "Standard not found" },
+        { status: 404 },
+      );
     return NextResponse.json({ success: true, message: "Standard deleted" });
   } catch (e) {
     console.error("DELETE /api/standards/[id] error", e);
-    return NextResponse.json({ success: false, message: "Failed to delete standard" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Failed to delete standard" },
+      { status: 500 },
+    );
   }
 }
