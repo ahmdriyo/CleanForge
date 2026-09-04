@@ -77,6 +77,7 @@ data-rules.md                  # Mandatory submission rules
 - **Kebab-case:** All feature files `contoh-file.tsx`, not `ContohFile.tsx`.
 - **FE-First:** `data-dummy` used via TanStack `queryFn: () => dummy` — BE will replace with `fetch('/api/*')`.
 - **Git:** Commit per feature/section, English UI, Indonesian PRD.
+- **Git Workflow (Wajib):** Setelah mengubah file, **JANGAN langsung `git commit`**. Wajib minta konfirmasi dulu: berikan `git status`, `git diff`, dan **rencana pesan commit** (conventional commits `feat/fix/docs/refactor`), tunggu `Approve` user, baru commit & push.
 
 ## 6. How to Continue
 
