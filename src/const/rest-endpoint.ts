@@ -1,8 +1,13 @@
 const prefix = "/api";
 
 export enum RestEndpoint {
-  // Authentication (legacy)
+  // Authentication (Firebase Bearer JWT)
   PostLogin = `${prefix}/auth/login`,
+  PostRegister = `${prefix}/auth/register`,
+  PostSession = `${prefix}/auth/session`,
+  PostLogout = `${prefix}/auth/logout`,
+  GetMe = `${prefix}/auth/me`,
+  PostAuthGoogle = `${prefix}/auth/google`,
 
   // Standards
   GetStandards = `${prefix}/standards`,
