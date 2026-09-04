@@ -1,16 +1,11 @@
 "use client";
 
-import { QueryClientProvider } from "@tanstack/react-query";
-import { createQueryClient } from "@/lib/query-client";
-import { useState } from "react";
-import { Toaster } from "@/components/ui/sonner";
+/**
+ * @deprecated — Prefer importing from `@/providers/MainProviders` directly.
+ * This file is kept for backward-compat because `src/app/layout.tsx`
+ * still imports `{ Providers } from "@/components/providers"`.
+ * All new providers should be added under `src/providers/*`
+ * and composed inside `src/providers/MainProviders.tsx`.
+ */
 
-export const Providers = ({ children }: { children: React.ReactNode }) => {
-  const [queryClient] = useState(() => createQueryClient());
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      <Toaster richColors />
-    </QueryClientProvider>
-  );
-};
+export { default as Providers, default } from "@/providers/MainProviders";

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "AGENTS.md",
+    "rules_event.md",
+    "data-rules.md",
+    "docs/prd-frontend-landing.md",
+    "docs/prd-frontend-dashboard.md",
+    "docs/prd-backend.md"
+  ],
+  "references": {
+    "landing-prd": {
+      "path": "./docs/prd-frontend-landing.md",
+      "description": "Landing PRD — monochrome violet, radial gradients, soft 3D claymorphism, Framer Motion"
+    },
+    "dashboard-prd": {
+      "path": "./docs/prd-frontend-dashboard.md",
+      "description": "Dashboard PRD — glassmorphism modern light UI, 12 menus (6 FULL + 6 placeholder), forge 3-panel"
+    },
+    "backend-prd": {
+      "path": "./docs/prd-backend.md",
+      "description": "Backend PRD — SSE + Flash only + Bearer JWT + array journals, single Cloud Run service"
+    },
+    "rules": {
+      "path": "./rules_event.md",
+      "description": "Hackathon 4 pillars (Auth, Gemini, Firestore isolated, Secret Manager) + timeline 06 Sept"
+    },
+    "src": {
+      "path": "./src",
+      "description": "Next.js 15 feature-based src — features/landing, dashboard, forge, standards, mcps, templates, docs"
+    },
+    "providers": {
+      "path": "./src/providers",
+      "description": "Single composition root — MainProviders composes QueryClient + Auth + Toaster; add new providers here"
+    }
+  }
+}
