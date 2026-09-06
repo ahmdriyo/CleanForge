@@ -135,6 +135,82 @@ Klik Apply to Standard untuk scaffold, atau coba lagi setelah Gemini dikonfigura
     }
   };
 
+  const handleTemplateClick = (text: string) => {
+    if (isSending) return;
+    setInput(text);
+    // auto-send after setting input
+    setTimeout(() => {
+      // directly send with that text to avoid race with state
+      const newUser = {
+        id: `msg-${Date.now()}`,
+        role: "user" as const,
+        content: text,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev: ChatMessage[]) => [...prev, newUser]);
+      setInput("");
+      setIsSending(true);
+      if (standardId && standardId !== "new") {
+        chatMutation
+          .mutateAsync({ standardId, message: text })
+          .then((res) => {
+            if (res.success && res.data?.reply) {
+              setMessages((prev: ChatMessage[]) => [
+                ...prev,
+                {
+                  id: `msg-${Date.now() + 1}`,
+                  role: "assistant" as const,
+                  content: res.data.reply,
+                  timestamp: new Date().toISOString(),
+                  hasApply: true,
+                },
+              ]);
+            }
+          })
+          .catch(() => {
+            const lower = text.toLowerCase();
+            let suggestedName = "feature-module";
+            if (lower.includes("payment")) suggestedName = "payment";
+            else if (lower.includes("profile")) suggestedName = "profile";
+            else if (lower.includes("auth")) suggestedName = "auth";
+            setMessages((prev: ChatMessage[]) => [
+              ...prev,
+              {
+                id: `msg-${Date.now() + 1}`,
+                role: "assistant" as const,
+                content: `Saran untuk ${suggestedName}:\nPath: src/features/${suggestedName}\n1. components/${suggestedName}-card.tsx\n2. hooks/use-${suggestedName}.ts\n3. schemas/${suggestedName}-schema.ts\n\nKlik Apply to Standard untuk scaffold.`,
+                timestamp: new Date().toISOString(),
+                hasApply: true,
+              },
+            ]);
+          })
+          .finally(() => setIsSending(false));
+      } else {
+        // fallback for "new"
+        setTimeout(() => setIsSending(false), 400);
+        setMessages((prev: ChatMessage[]) => [
+          ...prev,
+          {
+            id: `msg-${Date.now() + 1}`,
+            role: "assistant" as const,
+            content: `Saran untuk ${text.slice(0, 30)}:\nPath: src/features/feature-module\n1. components/feature-module-card.tsx\n2. hooks/use-feature-module.ts\n3. schemas/feature-module-schema.ts`,
+            timestamp: new Date().toISOString(),
+            hasApply: true,
+          },
+        ]);
+      }
+    }, 50);
+  };
+
+  const MESSAGE_TEMPLATES = [
+    "Scaffold payment gateway feature with clean structure",
+    "How to organize my Next.js folder for scalability?",
+    "Create user profile feature following the standard",
+    "Explain best practice for Go clean architecture",
+    "Help me refactor auth module to be more isolated",
+    "Generate example code for src/features/payment/components",
+  ];
+
   return (
     <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-[20px] flex flex-col h-full min-h-0 overflow-hidden focus-within:ring-2 focus-within:ring-violet-400/40 transition-all duration-200">
       <div className="px-4 py-3 border-b border-white/70 flex items-center justify-between shrink-0">
@@ -190,6 +266,25 @@ Klik Apply to Standard untuk scaffold, atau coba lagi setelah Gemini dikonfigura
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Message templates — clickable to auto-send */}
+      {messages.length === 0 && !isSending && (
+        <div className="px-3 pb-2 shrink-0">
+          <p className="text-[11px] font-medium text-slate-500 mb-1.5">Try asking:</p>
+          <div className="flex flex-wrap gap-1.5">
+            {MESSAGE_TEMPLATES.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => handleTemplateClick(t)}
+                className="text-[11px] px-2.5 py-1 rounded-full bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 transition text-left leading-tight"
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="p-3 border-t border-white/70 shrink-0">
         <div className="bg-white/85 backdrop-blur border border-white/70 rounded-2xl p-2 flex flex-col gap-1.5 shadow-xs focus-within:border-violet-300 focus-within:ring-1 focus-within:ring-violet-300 transition-all">
