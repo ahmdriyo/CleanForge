@@ -35,13 +35,12 @@ export const getGeminiApiKey = async (): Promise<string> => {
 export const getGeminiClient = async (): Promise<GoogleGenerativeAI> => {
   const key = await getGeminiApiKey();
   if (!key) throw new Error("GEMINI_API_KEY not configured — set GEMINI_API_KEY in Secret Manager (get from https://aistudio.google.com)");
-  if (!key.startsWith("AIza")) {
-    throw new Error(`GEMINI_API_KEY invalid format (got ${key.slice(0, 8)}...). Must start with AIza from https://aistudio.google.com`);
-  }
+  // Allow both AIza (AI Studio) and AQ. (Vertex AI) formats — let the API validate
+  if (key.length < 10) throw new Error("GEMINI_API_KEY too short — check Secret Manager value");
   return new GoogleGenerativeAI(key);
 };
 
-export const GEMINI_MODEL = "gemini-1.5-flash";
+export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-1.5-flash";
 
 export const GEMINI_SYSTEM_INSTRUCTION = `You are CleanForge — an expert Security Engineer and Clean Architecture Consultant.
 Your job is to help the user design a clean, scalable project structure that AI agents can follow via MCP.

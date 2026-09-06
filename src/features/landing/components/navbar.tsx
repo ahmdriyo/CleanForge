@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Layers, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { CleanIcon } from "@/components/icons/clean-icon";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -27,8 +28,8 @@ export const Navbar = () => {
     >
       <div className="max-w-[1280px] mx-auto px-4 lg:px-8 h-[64px] flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-950 to-indigo-900 flex items-center justify-center">
-            <Layers className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-950 to-indigo-900 flex items-center justify-center text-white">
+            <CleanIcon size={18} className="text-white" />
           </div>
           <span className="text-[16px] font-semibold tracking-tight text-violet-950">
             CleanForge

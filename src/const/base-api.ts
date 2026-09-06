@@ -1,7 +1,12 @@
 import axios from "axios";
 import { clearTokens, getToken } from "../utils/action";
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+// Use relative URL (same origin) when not set or when localhost in production (prevents Network Error on Cloud Run)
+const isBrowser = typeof window !== "undefined";
+const isLocalhostApi = rawBaseUrl?.includes("localhost");
+const isProdBrowser = isBrowser && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1";
+export const API_BASE_URL = !rawBaseUrl || (isLocalhostApi && isProdBrowser) ? undefined : rawBaseUrl.replace(/\/$/, "");
 
 export const baseApi = axios.create({
   baseURL: API_BASE_URL,

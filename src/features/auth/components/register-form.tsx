@@ -22,6 +22,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
 } from "firebase/auth";
+import { CleanIcon } from "@/components/icons/clean-icon";
 
 export const RegisterForm = () => {
   const router = useRouter();
@@ -91,6 +92,9 @@ export const RegisterForm = () => {
   return (
     <div className="w-full max-w-[420px] mx-auto">
       <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
+        <span className="w-7 h-7 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white shadow">
+          <CleanIcon size={16} className="text-white" />
+        </span>
         <span className="font-semibold tracking-tight text-violet-950">
           CleanForge
         </span>

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Layers } from "lucide-react";
 import { motion } from "framer-motion";
+import { CleanIcon } from "@/components/icons/clean-icon";
 
 export const Footer = () => {
   return (
@@ -15,8 +15,8 @@ export const Footer = () => {
       <div className="max-w-[1280px] mx-auto px-4 lg:px-8 flex flex-col md:flex-row gap-8 justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-950 to-indigo-900 flex items-center justify-center">
-              <Layers className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-950 to-indigo-900 flex items-center justify-center text-white">
+              <CleanIcon size={18} className="text-white" />
             </div>
             <span className="font-semibold tracking-tight text-violet-950">
               CleanForge

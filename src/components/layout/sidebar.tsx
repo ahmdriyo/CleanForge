@@ -18,6 +18,7 @@ import {
   LogOut,
   User,
 } from "lucide-react";
+import { CleanIcon } from "@/components/icons/clean-icon";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -78,8 +79,8 @@ export const Sidebar = () => {
     <aside className="hidden lg:flex w-[280px] shrink-0 flex-col bg-white/55 backdrop-blur-2xl border-r border-white/60 h-screen sticky top-0 overflow-hidden shadow-[4px_0_32px_rgba(59,130,246,0.08)]">
       <div className="px-6 py-5 border-b border-white/60">
         <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
-            <Hammer className="w-5 h-5 text-white" />
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/20 text-white">
+            <CleanIcon size={22} className="text-white" />
           </div>
           <div>
             <div className="text-[15px] font-semibold tracking-tight text-slate-900">CleanForge</div>
@@ -175,8 +176,8 @@ export const MobileSidebar = () => {
   return (
     <div className="lg:hidden flex flex-col h-full bg-[#fbfbff]">
       <div className="px-6 py-6 border-b border-violet-100 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center">
-          <Hammer className="w-5 h-5 text-white" />
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white">
+          <CleanIcon size={22} className="text-white" />
         </div>
         <div>
           <div className="text-[15px] font-semibold text-slate-900">CleanForge</div>

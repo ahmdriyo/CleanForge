@@ -1,6 +1,6 @@
 "use client";
 
-import { Hammer } from "lucide-react";
+import { CleanIcon } from "@/components/icons/clean-icon";
 
 export const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -14,8 +14,8 @@ export const AuthLayout = ({ children }: { children: React.ReactNode }) => {
 
         {/* Top logo */}
         <div className="relative flex items-center gap-2 text-white/90">
-          <div className="w-8 h-8 rounded-xl bg-white/15 backdrop-blur border border-white/20 flex items-center justify-center">
-            <Hammer className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 rounded-xl bg-white/15 backdrop-blur border border-white/20 flex items-center justify-center text-white">
+            <CleanIcon size={20} className="text-white" />
           </div>
           <span className="font-semibold tracking-tight">CleanForge</span>
         </div>
