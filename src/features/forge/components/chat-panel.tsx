@@ -78,44 +78,35 @@ export const ChatPanel = ({
       }
     }
 
-    // Intelligent fallback reply for consultant
+    // Offline fallback (only when standardId is "new" or API truly unreachable — server now has richer fallback)
     const lower = currentInput.toLowerCase();
-    let suggestedName = "module";
-    if (
-      lower.includes("pay") ||
-      lower.includes("stripe") ||
-      lower.includes("billing")
-    )
+    let suggestedName = "feature-module";
+    let hint = "";
+    if (lower.includes("pay") || lower.includes("stripe") || lower.includes("billing")) {
       suggestedName = "payment";
-    else if (lower.includes("user") || lower.includes("profile"))
-      suggestedName = "profile";
-    else if (
-      lower.includes("auth") ||
-      lower.includes("login") ||
-      lower.includes("register")
-    )
+      hint = "Payment flow — consider Stripe intents + idempotent webhooks.";
+    } else if (lower.includes("user") || lower.includes("profile") || lower.includes("account")) {
+      suggestedName = "user-profile";
+      hint = "User profile — avatar upload + Zod profile schema.";
+    } else if (lower.includes("auth") || lower.includes("login") || lower.includes("register")) {
       suggestedName = "auth";
-    else if (
-      lower.includes("order") ||
-      lower.includes("cart") ||
-      lower.includes("checkout")
-    )
+      hint = "Auth — JWT + Firebase Auth guard + Zod.";
+    } else if (lower.includes("order") || lower.includes("cart") || lower.includes("checkout")) {
       suggestedName = "checkout";
-    else if (
-      lower.includes("analytic") ||
-      lower.includes("metric") ||
-      lower.includes("stat")
-    )
+      hint = "Checkout — cart state (Zustand) + order validation.";
+    } else if (lower.includes("analytic") || lower.includes("metric") || lower.includes("stat") || lower.includes("dashboard")) {
       suggestedName = "analytics";
-    else if (lower.includes("notif")) suggestedName = "notifications";
-    else {
-      const words = currentInput.split(/\s+/).filter((w) => w.length > 2);
-      suggestedName =
-        words[words.length - 1]?.replace(/[^a-z0-9-]/gi, "").toLowerCase() ||
-        "feature-module";
+      hint = "Analytics — charts + TanStack Query.";
+    } else if (lower.includes("notif") || lower.includes("chat") || lower.includes("message")) {
+      suggestedName = "notifications";
+      hint = "Notifications — realtime (Firestore) + toast.";
+    } else {
+      const words = currentInput.split(/\s+/).filter((w) => w.length > 3 && !["please", "could", "would", "create", "build", "make"].includes(w.toLowerCase()));
+      const last = words[words.length - 1]?.replace(/[^a-z0-9-]/gi, "").toLowerCase();
+      if (last && last.length > 2) suggestedName = last;
     }
 
-    const reply = `I recommend structuring this under "src/features/${suggestedName}" using kebab-case:\n\n• components/${suggestedName}-card.tsx\n• hooks/use-${suggestedName}.ts\n• schemas/${suggestedName}-schema.ts\n\nClick "Apply to Standard" below to automatically scaffold this folder into your project structure.`;
+    const reply = `**Offline fallback** — Gemini not reachable for this request.\n\nFor **${suggestedName}** (${hint || "general feature"}), I suggest:\n\n\`src/features/${suggestedName}/\`\n• \`components/${suggestedName}-card.tsx\` — UI (kebab-case, Tailwind)\n• \`hooks/use-${suggestedName}.ts\` — data (TanStack Query)\n• \`schemas/${suggestedName}-schema.ts\` — Zod\n\nClick **"Apply to Standard"** to scaffold it, or try again when Gemini is configured. For real AI replies, set a valid \`GEMINI_API_KEY\` (AIza...) in Secret Manager.`;
 
     const newAssistant = {
       id: `msg-${Date.now() + 1}`,
