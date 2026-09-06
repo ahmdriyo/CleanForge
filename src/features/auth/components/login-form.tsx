@@ -15,13 +15,12 @@ import {
   loginSchema,
   type LoginFormValues,
 } from "@/features/auth/schemas/auth-schema";
-import { auth, db } from "@/lib/firebase/client";
+import { auth } from "@/lib/firebase/client";
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
 
 export const LoginForm = () => {
   const router = useRouter();
@@ -79,32 +78,27 @@ export const LoginForm = () => {
       const cred = await signInWithPopup(auth, provider);
       const idToken = await cred.user.getIdToken();
 
-      await fetch("/api/auth/google", {
+      const res = await fetch("/api/auth/google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idToken }),
       });
-
-      // Ensure Firestore user doc
-      await setDoc(
-        doc(db, `users/${cred.user.uid}`),
-        {
-          uid: cred.user.uid,
-          email: cred.user.email,
-          name: cred.user.displayName,
-          photoURL: cred.user.photoURL,
-          provider: "google",
-          updatedAt: new Date().toISOString(),
-        },
-        { merge: true },
-      );
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to sync Google session");
+      }
 
       localStorage.setItem("accessToken", idToken);
       toast.success("Signed in with Google");
       router.push("/dashboard");
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Google sign-in failed";
-      toast.error(msg);
+      // Surface Firestore permission errors clearly
+      if (msg.includes("Missing or insufficient permissions")) {
+        toast.error("Firestore permission denied — please try again. If persists, contact admin.");
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setGoogleLoading(false);
     }

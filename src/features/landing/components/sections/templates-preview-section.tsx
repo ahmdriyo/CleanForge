@@ -3,14 +3,35 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useTemplatesQuery } from "@/features/landing/hooks/use-templates-query";
-import { SiNextdotjs, SiNestjs, SiGo } from "react-icons/si";
+import {
+  SiNextdotjs,
+  SiNestjs,
+  SiGo,
+  SiFlutter,
+  SiExpress,
+  SiLaravel,
+  SiNuxt,
+  SiReact,
+  SiDjango,
+  SiFastapi,
+} from "react-icons/si";
 import { Layers } from "lucide-react";
 import { motion } from "framer-motion";
+import { FaGolang } from "react-icons/fa6";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   nextjs: SiNextdotjs,
   nestjs: SiNestjs,
   go: SiGo,
+  flutter: SiFlutter,
+  express: SiExpress,
+  laravel: SiLaravel,
+  nuxt: SiNuxt,
+  vite: SiReact,
+  react: SiReact,
+  django: SiDjango,
+  golang: FaGolang,
+  fastapi: SiFastapi,
 };
 
 export const TemplatesPreviewSection = () => {
