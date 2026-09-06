@@ -4,12 +4,12 @@ export const docsSections: DocSection[] = [
   {
     id: "getting-started",
     title: "Getting Started",
-    content: "CleanForge helps you enforce clean code standards via private MCP endpoints. 1) Create a Standard in Forge (pick framework, edit folder tree & per-folder rules/exampleCode), 2) Generate Private MCP Endpoint (choose expiry 1 day..Never + Bearer token toggle), 3) Paste the snippet for your AI agent below — AI will then call get_my_project_standard and scaffold code 1:1 with your Visual Tree + Inspector. Supports all 10 frameworks (Next.js, Go, React, Vue, Express, NestJS, Laravel, FastAPI, Django, Flutter).",
+    content: "Welcome to CleanForge! In just 3 steps you can make any AI follow your clean code rules.\n\nStep 1 — Create a Standard: Go to Forge, pick a framework (Next.js, Go, Laravel, etc.), and design your ideal folder structure. You can start from a Template or build from scratch.\n\nStep 2 — Generate MCP: Click Generate Private MCP Endpoint, choose how long it lasts (1 day to Never) and whether it needs a Bearer token, then copy your private URL.\n\nStep 3 — Connect your AI: Paste the URL into your AI tool (Cursor, Claude, Opencode, VS Code, etc. — see guides below). Your AI will then automatically call get_my_project_standard and generate code exactly like your Visual Tree. No more messy folders.",
   },
   {
     id: "forge-guide",
     title: "Forge Guide",
-    content: "Forge Studio is 3-panel: Left Gemini Consultant (journal multi-turn, Apply to Standard), Center Project Structure (visual tree, drag-drop, kebab-case, custom scrollbar), Right Inspector (per-folder Rules, Naming, Example Code with Gemini generate, Description). Edits auto-save via PATCH /api/standards/[id] or locally until you click Save Standard. The saved folderStructure is exactly what MCP serves.",
+    content: "Forge Studio has 3 simple panels:\n\nLeft — Gemini Consultant: Chat with AI about your architecture. It remembers your history and can suggest a clean structure. Click Apply to Standard to add its suggestion to your tree.\n\nCenter — Project Structure: See your folders as a visual tree. Drag and drop to reorder, click Add Node to create a new folder or file (always kebab-case), and click any item to edit it on the right.\n\nRight — Inspector: Edit the details of the selected folder or file. Set the Rules (how to code there), Naming, Example Code (click Generate with Gemini for a starter), and Description. Changes save automatically, or click Save Standard at the top when you are done. What you save here is exactly what your AI will receive via MCP.",
   },
   {
     id: "mcp-overview",
