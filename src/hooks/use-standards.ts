@@ -1,6 +1,7 @@
 import { StandardService } from "@/services/standard.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Standard } from "@/types/standard";
+import type { ApiResponse } from "@/types/api.type";
 
 export const STANDARD_QUERY_KEYS = {
   all: ["standards"] as const,
@@ -12,16 +13,35 @@ export const useStandards = () => {
   return useQuery({
     queryKey: STANDARD_QUERY_KEYS.all,
     queryFn: () => StandardService.getStandards(),
-    select: (res: any) => res.data,
+    select: (res: ApiResponse<Standard[]>) => (res.success ? res.data : []),
   });
 };
 
 export const useStandardById = (id: string) => {
+  const queryClient = useQueryClient();
   return useQuery({
     queryKey: STANDARD_QUERY_KEYS.detail(id),
     queryFn: () => StandardService.getStandardById(id),
     enabled: Boolean(id),
-    select: (res: any) => res.data,
+    initialData: (): ApiResponse<Standard> | undefined => {
+      // Check if standard already exists in standards list cache
+      const cached = queryClient.getQueryData<
+        ApiResponse<Standard[]> | Standard[]
+      >(["standards"]);
+      const list = Array.isArray(cached)
+        ? cached
+        : cached && cached.success
+          ? cached.data
+          : undefined;
+      const found = list?.find((s: Standard) => s.id === id);
+      if (found) {
+        return { success: true, data: found };
+      }
+      return undefined;
+    },
+    select: (res: ApiResponse<Standard>) => (res.success ? res.data : null),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 };
 
@@ -38,9 +58,12 @@ export const useCreateStandard = () => {
 export const useUpdateStandard = (id: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: Partial<Standard>) => StandardService.patchStandardById(id, data),
+    mutationFn: (data: Partial<Standard>) =>
+      StandardService.patchStandardById(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: STANDARD_QUERY_KEYS.detail(id) });
+      queryClient.invalidateQueries({
+        queryKey: STANDARD_QUERY_KEYS.detail(id),
+      });
       queryClient.invalidateQueries({ queryKey: STANDARD_QUERY_KEYS.all });
     },
   });

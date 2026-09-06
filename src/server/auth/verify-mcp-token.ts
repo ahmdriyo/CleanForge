@@ -21,12 +21,25 @@ const base64UrlEncode = (str: string) =>
 const base64UrlDecode = (str: string) =>
   Buffer.from(str, "base64url").toString("utf8");
 
-export const signMcpJwt = async (payload: Omit<McpTokenPayload, "iat" | "exp"> & { expiresInDays?: number }): Promise<string> => {
+export const signMcpJwt = async (
+  payload: Omit<McpTokenPayload, "iat" | "exp"> & {
+    expiresInDays?: number | null;
+  },
+): Promise<string> => {
   const secret = await getJwtSecret();
   const header = base64UrlEncode(JSON.stringify({ alg: "HS256", typ: "JWT" }));
   const now = Math.floor(Date.now() / 1000);
-  const exp = now + (payload.expiresInDays ?? 30) * 24 * 60 * 60;
-  const body = base64UrlEncode(JSON.stringify({ uid: payload.uid, standardId: payload.standardId, iat: now, exp }));
+  const expDays = payload.expiresInDays;
+  const bodyObj: Record<string, unknown> = {
+    uid: payload.uid,
+    standardId: payload.standardId,
+    iat: now,
+  };
+  // null or undefined = never expires -> omit exp (or set far future). We omit to indicate never.
+  if (expDays !== null && expDays !== undefined) {
+    bodyObj.exp = now + expDays * 24 * 60 * 60;
+  }
+  const body = base64UrlEncode(JSON.stringify(bodyObj));
   const signature = crypto.createHmac("sha256", secret).update(`${header}.${body}`).digest("base64url");
   return `${header}.${body}.${signature}`;
 };
@@ -44,6 +57,11 @@ export const verifyMcpJwt = async (token: string): Promise<McpTokenPayload | nul
   } catch {
     return null;
   }
+};
+
+export const isExpired = (expiresAt: string | null | undefined): boolean => {
+  if (!expiresAt) return false; // never expires
+  return new Date(expiresAt).getTime() < Date.now();
 };
 
 export const hashToken = (token: string): string =>

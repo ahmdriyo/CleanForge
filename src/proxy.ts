@@ -14,6 +14,7 @@ const PROTECTED_PREFIXES = [
   "/playground",
   "/marketplace",
   "/settings",
+  "/profile",
 ];
 
 // Public routes that should redirect to dashboard if already authenticated

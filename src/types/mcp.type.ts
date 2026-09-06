@@ -13,13 +13,16 @@ export interface McpTokenPayload {
 
 export interface GenerateMcpRequest {
   standardId: string;
+  expiresInDays?: number | null; // null = never expires
+  requireToken?: boolean;
 }
 
 export interface GenerateMcpResponse {
   endpoint: string;
   endpointFull: string;
-  token: string; // plaintext once
-  expiresAt: string;
+  token: string | null; // plaintext once, null if no token
+  expiresAt: string | null; // null = never
+  requireToken: boolean;
 }
 
 export interface McpListResponse {

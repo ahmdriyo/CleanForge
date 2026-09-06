@@ -1,17 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { ForgeHeaderSection } from "./sections/forge-header-section";
 import { ChatPanel } from "./chat-panel";
 import { VisualTree } from "./visual-tree";
 import { FolderInspector } from "./folder-inspector";
 import type { FolderNode } from "@/types/standard";
+import { useStandardById, STANDARD_QUERY_KEYS } from "@/hooks/use-standards";
+import {
+  POPULAR_FRAMEWORKS,
+  type FrameworkOption,
+  getFrameworkTemplate,
+} from "@/const/framework-templates";
 import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
 } from "@/components/ui/resizable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { StandardService } from "@/services/standard.service";
+
+// Recursive helper to update a node's details in the tree
+const updateNodeInTree = (
+  current: FolderNode,
+  updated: FolderNode,
+): FolderNode => {
+  if (current.id === updated.id) {
+    return {
+      ...updated,
+      children: current.children,
+    };
+  }
+  if (!current.children) return current;
+  return {
+    ...current,
+    children: current.children.map((child) => updateNodeInTree(child, updated)),
+  };
+};
+
+// Recursive helper to delete a node from the tree
+const deleteNodeFromTree = (current: FolderNode, id: string): FolderNode => {
+  if (!current.children) return current;
+  return {
+    ...current,
+    children: current.children
+      .filter((child) => child.id !== id)
+      .map((child) => deleteNodeFromTree(child, id)),
+  };
+};
 
 export const ForgePage = ({
   standardId,
@@ -20,75 +67,507 @@ export const ForgePage = ({
   standardId: string;
   standardName: string;
 }) => {
-  const [selected, setSelected] = useState<FolderNode | null>(null);
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const isNew = !standardId || standardId === "new";
+
+  const { data: standard, isLoading } = useStandardById(
+    isNew ? "" : standardId,
+  );
+
+  const [currentName, setCurrentName] = useState(
+    standard?.name || standardName || (isNew ? "My New Standard" : ""),
+  );
+  const [currentFramework, setCurrentFramework] = useState(
+    standard?.framework || "nextjs",
+  );
+  const [currentTree, setCurrentTree] = useState<FolderNode>(
+    standard?.folderStructure || POPULAR_FRAMEWORKS[0].initialTree,
+  );
+  const [selected, setSelected] = useState<FolderNode | null>(
+    standard?.folderStructure || POPULAR_FRAMEWORKS[0].initialTree,
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [frameworkConfirmModalOpen, setFrameworkConfirmModalOpen] =
+    useState(false);
+  const [pendingFramework, setPendingFramework] = useState<{
+    option: FrameworkOption;
+    customName?: string;
+  } | null>(null);
+
+  // Sync state with fetched standard during render without effect cascade
+  const [syncedKey, setSyncedKey] = useState<string | null>(
+    standard ? `${standard.id}-${standard.updatedAt || ""}` : null,
+  );
+
+  if (standard) {
+    const currentKey = `${standard.id}-${standard.updatedAt || ""}`;
+    if (currentKey !== syncedKey) {
+      setSyncedKey(currentKey);
+      if (standard.name) setCurrentName(standard.name);
+      if (standard.framework) setCurrentFramework(standard.framework);
+      if (standard.folderStructure) {
+        setCurrentTree(standard.folderStructure);
+        setSelected(standard.folderStructure);
+      }
+    }
+  }
+
+  // Keep selected node in sync when currentTree changes
+  const handleSelectNode = useCallback((node: FolderNode) => {
+    setSelected(node);
+  }, []);
+
+  const handleUpdateTree = useCallback((newTree: FolderNode) => {
+    setCurrentTree(newTree);
+    setSelected((prev) => {
+      if (!prev) return newTree;
+      // Find updated version of selected in newTree
+      const find = (n: FolderNode, id: string): FolderNode | null => {
+        if (n.id === id) return n;
+        if (n.children) {
+          for (const c of n.children) {
+            const found = find(c, id);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      return find(newTree, prev.id) || prev;
+    });
+  }, []);
+
+  const handleUpdateNode = useCallback(
+    async (updatedNode: FolderNode) => {
+      const updatedTree = updateNodeInTree(currentTree, updatedNode);
+      handleUpdateTree(updatedTree);
+
+      if (!isNew && standardId) {
+        try {
+          await StandardService.patchStandardById(standardId, {
+            folderStructure: updatedTree,
+          } as unknown as Partial<import("@/types/standard").Standard>);
+          queryClient.invalidateQueries({ queryKey: STANDARD_QUERY_KEYS.all });
+          queryClient.invalidateQueries({
+            queryKey: STANDARD_QUERY_KEYS.detail(standardId),
+          });
+        } catch {
+          // Tree already updated in local state
+        }
+      }
+    },
+    [currentTree, isNew, standardId, handleUpdateTree, queryClient],
+  );
+
+  const handleDeleteNode = useCallback(
+    async (nodeId: string) => {
+      if (nodeId === "root" || nodeId === currentTree.id) {
+        toast.error("Cannot delete root folder");
+        return;
+      }
+      const updatedTree = deleteNodeFromTree(currentTree, nodeId);
+      handleUpdateTree(updatedTree);
+      if (selected?.id === nodeId) {
+        setSelected(updatedTree);
+      }
+
+      if (!isNew && standardId) {
+        try {
+          await StandardService.patchStandardById(standardId, {
+            folderStructure: updatedTree,
+          } as unknown as Partial<import("@/types/standard").Standard>);
+          queryClient.invalidateQueries({ queryKey: STANDARD_QUERY_KEYS.all });
+          queryClient.invalidateQueries({
+            queryKey: STANDARD_QUERY_KEYS.detail(standardId),
+          });
+        } catch {
+          // Tree already updated in local state
+        }
+      }
+    },
+    [currentTree, isNew, standardId, selected, handleUpdateTree, queryClient],
+  );
+
+  const handleSelectFramework = (
+    option: FrameworkOption,
+    customName?: string,
+  ) => {
+    setPendingFramework({ option, customName });
+    setFrameworkConfirmModalOpen(true);
+  };
+
+  const handleConfirmSwitchFramework = () => {
+    if (!pendingFramework) return;
+    const { option, customName } = pendingFramework;
+    const finalFrameworkName = customName || option.id;
+    const displayName = customName || option.name;
+
+    setCurrentFramework(finalFrameworkName);
+    setCurrentTree(option.initialTree);
+    setSelected(option.initialTree);
+    if (isNew) {
+      setCurrentName(`My ${displayName} Standard`);
+    }
+    toast.info(`Switched template to ${displayName}`);
+    setFrameworkConfirmModalOpen(false);
+    setPendingFramework(null);
+  };
+
+  const handleDeleteForge = async () => {
+    if (isNew) return;
+    setIsDeleting(true);
+    try {
+      const res = await StandardService.deleteStandardById(standardId);
+      if (res.success) {
+        toast.success("Standard Forge deleted successfully");
+        queryClient.invalidateQueries({ queryKey: STANDARD_QUERY_KEYS.all });
+        router.push("/standards");
+        return;
+      }
+      throw new Error(res.message || "Failed to delete standard");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to delete standard";
+      toast.error(msg);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSaveStandard = async (
+    nameToSave?: string,
+    frameworkToSave?: string,
+  ) => {
+    const finalName = (nameToSave || currentName).trim();
+    const finalFramework = frameworkToSave || currentFramework;
+    if (!finalName) {
+      toast.error("Standard name cannot be empty");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const activeFrameworkInfo = getFrameworkTemplate(finalFramework);
+
+      if (isNew) {
+        const res = await StandardService.postStandard({
+          name: finalName,
+          framework: finalFramework,
+          description: `Clean architecture standard for ${activeFrameworkInfo.name} forged with Gemini`,
+          folderStructure: currentTree,
+          globalRules: activeFrameworkInfo.defaultRules,
+        });
+        if (res.success && res.data?.id) {
+          toast.success("Standard created successfully!");
+          queryClient.invalidateQueries({ queryKey: STANDARD_QUERY_KEYS.all });
+          router.push(`/forge/${res.data.id}`);
+          return;
+        }
+        throw new Error(res.message || "Failed to create standard");
+      } else {
+        const res = await StandardService.patchStandardById(standardId, {
+          name: finalName,
+          framework: finalFramework,
+          folderStructure: currentTree,
+        } as unknown as Partial<import("@/types/standard").Standard>);
+        if (res.success) {
+          toast.success("Standard saved successfully!");
+          queryClient.invalidateQueries({ queryKey: STANDARD_QUERY_KEYS.all });
+          queryClient.invalidateQueries({
+            queryKey: STANDARD_QUERY_KEYS.detail(standardId),
+          });
+          return;
+        }
+        throw new Error(res.message || "Failed to save standard");
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to save standard";
+      toast.error(msg);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleApplyFromChat = (suggestion: string) => {
+    // Extract candidate feature name from AI response
+    let feat = "new-feature";
+    const match =
+      suggestion.match(/src\/features\/([a-z0-9-]+)/i) ||
+      suggestion.match(/features\/([a-z0-9-]+)/i);
+    if (match && match[1]) {
+      feat = match[1].toLowerCase();
+    } else {
+      const lower = suggestion.toLowerCase();
+      if (lower.includes("payment")) feat = "payment";
+      else if (lower.includes("auth")) feat = "auth";
+      else if (lower.includes("profile")) feat = "profile";
+      else if (lower.includes("order")) feat = "order";
+      else if (lower.includes("analytics")) feat = "analytics";
+    }
+
+    const featureFolder: FolderNode = {
+      id: `feat-${feat}-${Date.now()}`,
+      name: feat,
+      type: "folder",
+      rules: `Isolated ${feat} module with components, hooks, and schemas.`,
+      naming: "kebab-case",
+      children: [
+        {
+          id: `comp-${feat}-${Date.now()}`,
+          name: "components",
+          type: "folder",
+          rules: `UI components for ${feat}`,
+          naming: "kebab-case",
+          children: [
+            {
+              id: `file-${feat}-card-${Date.now()}`,
+              name: `${feat}-card.tsx`,
+              type: "file",
+              rules: "Clean UI component",
+              naming: "kebab-case",
+            },
+          ],
+        },
+        {
+          id: `hook-${feat}-${Date.now()}`,
+          name: "hooks",
+          type: "folder",
+          rules: `Query and mutation hooks for ${feat}`,
+          naming: "kebab-case",
+          children: [
+            {
+              id: `file-use-${feat}-${Date.now()}`,
+              name: `use-${feat}.ts`,
+              type: "file",
+              rules: "Custom TanStack Query hook",
+              naming: "kebab-case",
+            },
+          ],
+        },
+      ],
+    };
+
+    // Find "features" folder in currentTree or attach to root
+    const insertIntoFeaturesOrRoot = (root: FolderNode): FolderNode => {
+      const clone = {
+        ...root,
+        children: root.children ? [...root.children] : [],
+      };
+      const featNode = clone.children?.find(
+        (c) => c.name === "features" && c.type === "folder",
+      );
+      if (featNode) {
+        featNode.children = [...(featNode.children || []), featureFolder];
+        return clone;
+      }
+      clone.children = [...(clone.children || []), featureFolder];
+      return clone;
+    };
+
+    const newTree = insertIntoFeaturesOrRoot(currentTree);
+    handleUpdateTree(newTree);
+    setSelected(featureFolder);
+    toast.success(`Applied "${feat}" module to project structure!`);
+  };
+
+  const formattedLastSaved = standard?.updatedAt
+    ? new Date(standard.updatedAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
+
+  if (!isNew && isLoading && !standard) {
+    return (
+      <div className="flex flex-col flex-1 h-[calc(100vh-8.5rem)] min-h-145 items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl p-8 flex flex-col items-center gap-3 shadow-lg">
+          <Loader2 className="w-8 h-8 text-violet-600 animate-spin" />
+          <h3 className="font-semibold text-slate-900 text-sm">
+            Loading Project Standard...
+          </h3>
+          <p className="text-xs text-slate-500">
+            Fetching latest project architecture from server
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isNew && !isLoading && !standard) {
+    return (
+      <div className="flex flex-col flex-1 h-[calc(100vh-8.5rem)] min-h-145 items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl p-8 flex flex-col items-center gap-3 shadow-lg text-center max-w-sm">
+          <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-lg mx-auto">
+            !
+          </div>
+          <h3 className="font-semibold text-slate-900 text-sm">
+            Standard Not Found
+          </h3>
+          <p className="text-xs text-slate-500">
+            This standard may have been deleted or you do not have permission to
+            view it.
+          </p>
+          <Button
+            size="sm"
+            className="rounded-full bg-violet-600 hover:bg-violet-700 text-white text-xs mt-2"
+            onClick={() => router.push("/standards")}
+          >
+            Back to Standards
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      <ForgeHeaderSection standardName={standardName} standardId={standardId} />
+    <div className="flex flex-col flex-1 h-[calc(100vh-8.5rem)] min-h-145">
+      <ForgeHeaderSection
+        standardName={currentName}
+        standardId={standardId}
+        framework={currentFramework}
+        onSave={handleSaveStandard}
+        onDelete={handleDeleteForge}
+        onSelectFramework={handleSelectFramework}
+        isSaving={isSaving}
+        isDeleting={isDeleting}
+        lastSaved={formattedLastSaved}
+      />
 
       {/* Desktop: 3 panels resizable */}
-      <div className="hidden lg:block flex-1 min-h-0 ">
+      <div className="hidden lg:block flex-1 min-h-0 h-full overflow-hidden">
         <ResizablePanelGroup
           orientation="horizontal"
-          className="h-full rounded-[20px] gap-2"
+          className="h-full w-full rounded-[20px] gap-2"
         >
-          <ResizableHandle withHandle className="bg-transparent" />
-          <ResizablePanel defaultSize={35} minSize={25}>
+          <ResizablePanel
+            defaultSize={35}
+            minSize={25}
+            className="min-h-0 h-full overflow-hidden"
+          >
             <VisualTree
               selectedId={selected?.id || null}
-              onSelect={setSelected}
-            />
-          </ResizablePanel>
-          <ResizablePanel defaultSize={35} minSize={25}>
-            <FolderInspector key={selected?.id ?? "none"} node={selected} />
-          </ResizablePanel>
-          <ResizablePanel defaultSize={30} minSize={20}>
-            <ChatPanel
+              onSelect={handleSelectNode}
+              folderTree={currentTree}
+              onTreeChange={handleUpdateTree}
               standardId={standardId}
-              onApply={() => console.log("apply", standardId)}
             />
+          </ResizablePanel>
+          <ResizablePanel
+            defaultSize={35}
+            minSize={25}
+            className="min-h-0 h-full overflow-hidden"
+          >
+            <FolderInspector
+              key={selected?.id ?? "none"}
+              node={selected}
+              onUpdateNode={handleUpdateNode}
+              onDeleteNode={handleDeleteNode}
+              isSaving={isSaving}
+            />
+          </ResizablePanel>
+          <ResizablePanel
+            defaultSize={30}
+            minSize={20}
+            className="min-h-0 h-full overflow-hidden"
+          >
+            <ChatPanel standardId={standardId} onApply={handleApplyFromChat} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
 
       {/* Mobile: Tabs */}
-      <div className="lg:hidden flex-1 flex flex-col">
-        <Tabs defaultValue="chat" className="flex-1 flex flex-col">
-          <TabsList className="bg-white/65 backdrop-blur rounded-full p-1 w-fit mx-auto">
-            <TabsTrigger
-              value="chat"
-              className="rounded-full data-[state=active]:bg-violet-600 data-[state=active]:text-white"
-            >
-              Chat
-            </TabsTrigger>
+      <div className="lg:hidden flex-1 flex flex-col min-h-0">
+        <Tabs defaultValue="tree" className="flex-1 flex flex-col min-h-0">
+          <TabsList className="bg-white/65 backdrop-blur rounded-full p-1 w-fit mx-auto shrink-0 mb-2">
             <TabsTrigger
               value="tree"
-              className="rounded-full data-[state=active]:bg-violet-600 data-[state=active]:text-white"
+              className="rounded-full data-[state=active]:bg-violet-600 data-[state=active]:text-white text-xs px-4"
             >
               Tree
             </TabsTrigger>
             <TabsTrigger
               value="inspector"
-              className="rounded-full data-[state=active]:bg-violet-600 data-[state=active]:text-white"
+              className="rounded-full data-[state=active]:bg-violet-600 data-[state=active]:text-white text-xs px-4"
             >
               Inspector
             </TabsTrigger>
+            <TabsTrigger
+              value="chat"
+              className="rounded-full data-[state=active]:bg-violet-600 data-[state=active]:text-white text-xs px-4"
+            >
+              Chat
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="tree" className="flex-1 mt-4 h-[60vh]">
+          <TabsContent value="tree" className="flex-1 min-h-0 h-[65vh]">
             <VisualTree
               selectedId={selected?.id || null}
-              onSelect={setSelected}
+              onSelect={handleSelectNode}
+              folderTree={currentTree}
+              onTreeChange={handleUpdateTree}
+              standardId={standardId}
             />
           </TabsContent>
-          <TabsContent value="inspector" className="flex-1 mt-4 h-[60vh]">
-            <FolderInspector key={selected?.id ?? "none"} node={selected} />
+          <TabsContent value="inspector" className="flex-1 min-h-0 h-[65vh]">
+            <FolderInspector
+              key={selected?.id ?? "none"}
+              node={selected}
+              onUpdateNode={handleUpdateNode}
+              onDeleteNode={handleDeleteNode}
+              isSaving={isSaving}
+            />
           </TabsContent>
-          <TabsContent value="chat" className="flex-1 mt-4 h-[60vh]">
-            <ChatPanel standardId={standardId} />
+          <TabsContent value="chat" className="flex-1 min-h-0 h-[65vh]">
+            <ChatPanel standardId={standardId} onApply={handleApplyFromChat} />
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Custom Confirmation Modal for Switching Framework Template */}
+      <Dialog
+        open={frameworkConfirmModalOpen}
+        onOpenChange={(open) => {
+          setFrameworkConfirmModalOpen(open);
+          if (!open) setPendingFramework(null);
+        }}
+      >
+        <DialogContent className="bg-white/95 backdrop-blur-2xl border-white/80 rounded-2xl w-[92vw] sm:max-w-md p-5">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold text-slate-900">
+              Switch Framework Template?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-slate-500 leading-relaxed mt-1">
+            Switching to{" "}
+            <span className="font-semibold text-slate-800">
+              &quot;
+              {pendingFramework?.customName || pendingFramework?.option.name}
+              &quot;
+            </span>{" "}
+            will load its recommended clean architecture structure. Any unsaved
+            folder modifications will be replaced.
+          </p>
+          <div className="flex gap-2 justify-end mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full text-xs h-8"
+              onClick={() => {
+                setFrameworkConfirmModalOpen(false);
+                setPendingFramework(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className="rounded-full bg-violet-600 hover:bg-violet-700 text-white text-xs h-8 px-4"
+              onClick={handleConfirmSwitchFramework}
+            >
+              Switch Template
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

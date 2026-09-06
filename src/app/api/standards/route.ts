@@ -1,13 +1,30 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAuth } from "@/server/auth/verify-id-token";
-import { createStandard, getStandards } from "@/server/repository/standard-repository";
+import {
+  createStandard,
+  getStandards,
+} from "@/server/repository/standard-repository";
+import type { FolderNode } from "@/types/standard";
+
+const folderNodeSchema: z.ZodType<FolderNode> = z.lazy(() =>
+  z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    type: z.enum(["folder", "file"]),
+    rules: z.string().optional(),
+    naming: z.enum(["kebab-case", "PascalCase", "camelCase"]).optional(),
+    exampleCode: z.string().optional(),
+    description: z.string().optional(),
+    children: z.array(folderNodeSchema).optional(),
+  }),
+);
 
 const createStandardSchema = z.object({
-  name: z.string().min(3, "Name must be at least 3 characters"),
-  framework: z.enum(["nextjs", "nestjs", "go"]),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  framework: z.string().min(1, "Framework required"),
   description: z.string().min(1, "Description required"),
-  folderStructure: z.any(),
+  folderStructure: folderNodeSchema,
   globalRules: z.object({
     namingConvention: z.enum(["kebab-case", "PascalCase", "camelCase"]),
     stateManagement: z.string(),
@@ -28,7 +45,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ success: true, data: standards });
   } catch (e) {
     console.error("GET /api/standards error", e);
-    return NextResponse.json({ success: false, message: "Failed to fetch standards" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Failed to fetch standards" },
+      { status: 500 },
+    );
   }
 }
 
@@ -41,7 +61,11 @@ export async function POST(req: Request) {
     const parsed = createStandardSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: "Validation failed", errors: parsed.error.flatten().fieldErrors },
+        {
+          success: false,
+          message: "Validation failed",
+          errors: parsed.error.flatten().fieldErrors,
+        },
         { status: 400 },
       );
     }
@@ -57,9 +81,15 @@ export async function POST(req: Request) {
       mcpToken: parsed.data.mcpToken || "",
     });
 
-    return NextResponse.json({ success: true, data: standard }, { status: 201 });
+    return NextResponse.json(
+      { success: true, data: standard },
+      { status: 201 },
+    );
   } catch (e) {
     console.error("POST /api/standards error", e);
-    return NextResponse.json({ success: false, message: "Failed to create standard" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Failed to create standard" },
+      { status: 500 },
+    );
   }
 }

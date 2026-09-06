@@ -2,18 +2,20 @@
 
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { auth } from "@/lib/firebase/client";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, signOut, User } from "firebase/auth";
 
 type AuthContextValue = {
   user: User | null;
   loading: boolean;
   idToken: string | null;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
   idToken: null,
+  logout: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -22,6 +24,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [idToken, setIdToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      setIdToken(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("accessToken");
+        sessionStorage.removeItem("accessToken");
+      }
+      await fetch("/api/auth/logout", { method: "POST" });
+      window.location.href = "/login";
+    } catch (e) {
+      console.error("Logout failed", e);
+    }
+  };
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -50,7 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, idToken }}>
+    <AuthContext.Provider value={{ user, loading, idToken, logout }}>
       {children}
     </AuthContext.Provider>
   );
