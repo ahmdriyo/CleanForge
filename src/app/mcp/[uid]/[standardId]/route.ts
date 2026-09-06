@@ -196,6 +196,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ uid: st
       });
     }
 
+    // MCP lifecycle notifications — must return 202 Accepted, not 404
+    if (method === "notifications/initialized" || (method && method.startsWith("notifications/"))) {
+      // No response body for notifications
+      return new Response(null, { status: 202 });
+    }
+
+    if (method === "ping") {
+      return Response.json({ jsonrpc: "2.0", id, result: {} });
+    }
+
     return Response.json({ jsonrpc: "2.0", id, error: { code: -32601, message: "Method not found" } }, { status: 404 });
   } catch (e) {
     console.error("MCP POST error", e);

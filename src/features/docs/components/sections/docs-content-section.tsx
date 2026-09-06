@@ -3,11 +3,12 @@
 import { docsSections } from "@/data-dummy/docs-dummy";
 import { Button } from "@/components/ui/button";
 import { Copy, Check } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 export const DocsContentSection = () => {
   const [copied, setCopied] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string>(docsSections[0]?.id ?? "");
 
   const handleCopy = (code: string, id: string) => {
     navigator.clipboard.writeText(code);
@@ -16,16 +17,53 @@ export const DocsContentSection = () => {
     setTimeout(() => setCopied(null), 2000);
   };
 
+  useEffect(() => {
+    const ids = docsSections.map((s) => s.id);
+    const elements = ids.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    if (!elements.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Find the entry most visible near top
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) {
+          setActiveId(visible[0].target.id);
+        }
+      },
+      {
+        rootMargin: "-20% 0px -60% 0px",
+        threshold: [0, 0.25, 0.5, 1],
+      }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="grid lg:grid-cols-[240px_1fr] gap-6">
       <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-[16px] p-4 h-fit sticky top-20">
         <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">On this page</div>
         <div className="space-y-1">
-          {docsSections.map((sec) => (
-            <a key={sec.id} href={`#${sec.id}`} className="block text-sm text-slate-600 hover:text-violet-700 py-1.5 px-3 rounded-full hover:bg-white/65">
-              {sec.title}
-            </a>
-          ))}
+          {docsSections.map((sec) => {
+            const isActive = activeId === sec.id;
+            return (
+              <a
+                key={sec.id}
+                href={`#${sec.id}`}
+                onClick={() => setActiveId(sec.id)}
+                className={`block text-sm py-1.5 px-3 rounded-full transition-colors border ${
+                  isActive
+                    ? "bg-blue-50 text-blue-600 border-blue-200 font-medium shadow-sm"
+                    : "text-slate-600 hover:text-blue-600 hover:bg-white/65 border-transparent"
+                }`}
+              >
+                {sec.title}
+              </a>
+            );
+          })}
         </div>
       </div>
 

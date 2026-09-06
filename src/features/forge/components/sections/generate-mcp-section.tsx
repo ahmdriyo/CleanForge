@@ -39,6 +39,17 @@ const EXPIRY_OPTIONS = [
   { label: "Never expires", value: "never" },
 ];
 
+const AGENT_OPTIONS = [
+  { value: "opencode", label: "Opencode", file: "opencode.json" },
+  { value: "cursor", label: "Cursor", file: "Cursor → Settings → MCP" },
+  { value: "claude-desktop", label: "Claude Desktop", file: "claude_desktop_config.json" },
+  { value: "claude-code", label: "Claude Code", file: "claude mcp add" },
+  { value: "windsurf", label: "Windsurf", file: "mcp_config.json" },
+  { value: "cline", label: "Cline (VS Code)", file: "cline_mcp_settings.json" },
+  { value: "vscode", label: "VS Code", file: ".vscode/mcp.json" },
+  { value: "generic", label: "Generic SSE", file: "mcpServers" },
+] as const;
+
 export const GenerateMcpSection = ({
   standardName,
   standardId,
@@ -60,8 +71,8 @@ export const GenerateMcpSection = ({
 
   // Options before generate
   const [selectedExpiry, setSelectedExpiry] = useState<string>("1");
-  const [selectedRequireToken, setSelectedRequireToken] =
-    useState<boolean>(false);
+  const [selectedRequireToken, setSelectedRequireToken] = useState<boolean>(false);
+  const [selectedAgent, setSelectedAgent] = useState<string>("opencode");
 
   // Existing MCP fetched from server
   const [existing, setExisting] = useState<{
@@ -327,12 +338,105 @@ export const GenerateMcpSection = ({
   };
 
   const currentEndpoint = realEndpoint || endpointPreview;
-  const mcpConfigSnippet = requireToken
-    ? `{\n  "mcpServers": {\n    "cleanforge": {\n      "url": "${currentEndpoint}",\n      "headers": {\n        "Authorization": "Bearer YOUR_TOKEN"\n      }\n    }\n  }\n}`
-    : `{\n  "mcpServers": {\n    "cleanforge": {\n      "url": "${currentEndpoint}"\n    }\n  }\n}`;
+  const tokenPlaceholder = realToken ? realToken : "YOUR_TOKEN";
+  const getAgentSnippet = (agent: string) => {
+    const urlLine = `"url": "${currentEndpoint}"`;
+    const headersLine = requireToken
+      ? `,
+      "headers": {
+        "Authorization": "Bearer ${tokenPlaceholder}"
+      }`
+      : "";
+    const mcpRemoteHeaders = requireToken ? `, "--header", "Authorization: Bearer ${tokenPlaceholder}"` : "";
+    switch (agent) {
+      case "opencode":
+        return `{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "cleanforge": {
+      "type": "remote",
+      "url": "${currentEndpoint}",${requireToken ? `
+      "headers": { "Authorization": "Bearer ${tokenPlaceholder}" },` : ""}
+      "enabled": true
+    }
+  }
+}`;
+      case "cursor":
+        return `{
+  "mcpServers": {
+    "cleanforge": {
+      "url": "${currentEndpoint}"${headersLine}
+    }
+  }
+}
+// Cursor → Settings → Features → MCP Servers → Add`;
+      case "claude-desktop":
+        return `{
+  "mcpServers": {
+    "cleanforge": {
+      "url": "${currentEndpoint}"${headersLine}
+    }
+  }
+}
+// File: ~/Library/Application Support/Claude/claude_desktop_config.json (macOS)
+//       %APPDATA%\\Claude\\claude_desktop_config.json (Windows)`;
+      case "claude-code":
+        return `# Claude Code CLI
+claude mcp add --transport sse cleanforge ${currentEndpoint} ${requireToken ? `--header "Authorization: Bearer ${tokenPlaceholder}"` : ""}
+# or add to ~/.claude.json mcpServers`;
+      case "windsurf":
+        return `{
+  "mcpServers": {
+    "cleanforge": {
+      "url": "${currentEndpoint}"${headersLine}
+    }
+  }
+}
+// File: ~/.codeium/windsurf/mcp_config.json`;
+      case "cline":
+        return `{
+  "mcpServers": {
+    "cleanforge": {
+      "url": "${currentEndpoint}"${headersLine},
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
+// File: VS Code → Cline → MCP Servers (cline_mcp_settings.json)`;
+      case "vscode":
+        return `{
+  "servers": {
+    "cleanforge": {
+      "url": "${currentEndpoint}"${headersLine ? `,\n      "headers": { "Authorization": "Bearer ${tokenPlaceholder}" }` : ""}
+    }
+  }
+}
+// File: .vscode/mcp.json (VS Code 1.99+)`;
+      case "generic":
+        return `// Generic MCP Remote (mcp-remote proxy for legacy clients)
+{
+  "mcpServers": {
+    "cleanforge": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "${currentEndpoint}"${mcpRemoteHeaders}]
+    }
+  }
+}`;
+      default:
+        return `{
+  "mcpServers": {
+    "cleanforge": {
+      "url": "${currentEndpoint}"${headersLine}
+    }
+  }
+}`;
+    }
+  };
+  const mcpConfigSnippet = getAgentSnippet(selectedAgent);
   const curlSnippet = requireToken
-    ? `curl -H "Authorization: Bearer ${realToken ? realToken.slice(0, 12) + "..." : "YOUR_TOKEN"}" \\\n  -H "Accept: text/event-stream" \\\n  ${currentEndpoint}`
-    : `curl -H "Accept: text/event-stream" \\\n  ${currentEndpoint}`;
+    ? `curl -H "Authorization: Bearer ${tokenPlaceholder.slice(0, 16)}..." \\\n  -H "Accept: text/event-stream" \\\n  "${currentEndpoint}?method=get_my_project_standard&raw=1"`
+    : `curl -H "Accept: application/json" \\\n  "${currentEndpoint}?method=get_my_project_standard&raw=1"`;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -589,64 +693,36 @@ export const GenerateMcpSection = ({
                 </div>
               )}
 
-              {/* Config & curl — compact */}
+              {/* Config — multi-agent */}
               <div className="space-y-3">
-                <div className="relative">
-                  <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-                    1. Cursor / Claude — mcpServers config
-                  </Label>
-                  <p className="text-[11px] text-slate-500">
-                    Paste into{" "}
-                    <code className="bg-slate-100 px-1 rounded">
-                      claude_desktop_config.json
-                    </code>{" "}
-                    or Cursor MCP settings.
-                  </p>
-                  <pre className="mt-1 bg-slate-900 rounded-xl p-3 pr-16 font-mono text-xs text-slate-300 whitespace-pre-wrap break-all border border-slate-800">
-                    {mcpConfigSnippet}
-                  </pre>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="absolute top-12 right-2 h-7 rounded-full bg-white/90 text-xs"
-                    onClick={() => copy(mcpConfigSnippet, "config")}
-                  >
-                    <Copy className="w-3 h-3" /> Copy
-                  </Button>
+                <div>
+                  <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">How to Connect — choose AI agent</Label>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Pick agent, copy snippet, paste to its config file. Restart agent after saving.</p>
+                  <Select value={selectedAgent} onValueChange={(v) => setSelectedAgent((v as string) ?? "opencode")}>
+                    <SelectTrigger className="mt-1.5 bg-white/90 rounded-xl w-full h-9 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AGENT_OPTIONS.map((a) => (
+                        <SelectItem key={a.value} value={a.value} className="text-xs">
+                          {a.label} <span className="text-slate-400">— {a.file}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="relative">
-                  <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-                    2. curl — test SSE
-                  </Label>
-                  <pre className="mt-1 bg-slate-900 rounded-xl p-3 pr-16 font-mono text-xs text-emerald-300 whitespace-pre-wrap break-all border border-slate-800">
-                    {curlSnippet}
-                  </pre>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="absolute top-6 right-2 h-7 rounded-full bg-white/90 text-xs"
-                    onClick={() =>
-                      copy(
-                        requireToken && realToken
-                          ? `curl -H "Authorization: Bearer ${realToken}" -H "Accept: text/event-stream" ${realEndpoint}`
-                          : `curl -H "Accept: text/event-stream" ${realEndpoint}`,
-                        "curl",
-                      )
-                    }
-                  >
-                    <Copy className="w-3 h-3" /> Copy
-                  </Button>
+                  <pre className="bg-slate-900 rounded-xl p-3 pr-16 font-mono text-xs text-slate-300 whitespace-pre-wrap break-all border border-slate-800 overflow-auto max-h-52">{mcpConfigSnippet}</pre>
+                  <Button size="sm" variant="outline" className="absolute top-2 right-2 h-7 rounded-full bg-white/90 text-xs" onClick={() => copy(mcpConfigSnippet, "config")}><Copy className="w-3 h-3" /> Copy</Button>
+                </div>
+                <div className="relative">
+                  <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">curl — verify complete data</Label>
+                  <pre className="mt-1 bg-slate-900 rounded-xl p-3 pr-16 font-mono text-xs text-emerald-300 whitespace-pre-wrap break-all border border-slate-800">{curlSnippet}</pre>
+                  <Button size="sm" variant="outline" className="absolute top-6 right-2 h-7 rounded-full bg-white/90 text-xs" onClick={() => copy(curlSnippet, "curl")}><Copy className="w-3 h-3" /> Copy</Button>
                 </div>
                 <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-2 flex gap-2 text-[11px] text-emerald-800">
                   <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-emerald-600 mt-0.5" />
-                  <span>
-                    AI will receive your full Project Structure (folder tree,
-                    rules, naming, example code) via{" "}
-                    <code className="bg-white px-1 rounded">
-                      get_my_project_standard
-                    </code>
-                    .
-                  </span>
+                  <span>All agents above receive the <b>same complete data</b> — full folder tree + rules/naming/exampleCode per node + vibeCodingInstructions — via <code className="bg-white px-1 rounded">get_my_project_standard</code>.</span>
                 </div>
               </div>
 

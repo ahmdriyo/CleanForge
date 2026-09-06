@@ -1,0 +1,23 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "standards",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "updatedAt", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "standards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "framework", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "journals",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "standardId", "order": "ASCENDING" }]
+    }
+  ],
+  "fieldOverrides": []
+}
