@@ -13,12 +13,35 @@ export const generateMcpToken = async (args: {
   standardName: string;
   endpointPath: string;
   endpointFull: string;
+  expiresInDays?: number | null;
+  requireToken?: boolean;
 }): Promise<GenerateMcpResponse> => {
-  const token = await signMcpJwt({ uid: args.uid, standardId: args.standardId, expiresInDays: 30 });
-  const hash = hashToken(token);
+  const expiresInDays = args.expiresInDays ?? 1;
+  const requireToken = args.requireToken ?? false;
 
-  // Save hash to standard
-  await updateMcpToken(args.uid, args.standardId, hash, args.endpointPath);
+  let token: string | null = null;
+  let hash: string | null = null;
+  let expiresAt: string | null = null;
+
+  if (requireToken) {
+    token = await signMcpJwt({
+      uid: args.uid,
+      standardId: args.standardId,
+      expiresInDays,
+    });
+    hash = hashToken(token);
+    if (expiresInDays !== null && expiresInDays !== undefined) {
+      expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString();
+    }
+  } else {
+    // No token — still respect expiry for endpoint availability
+    if (expiresInDays !== null && expiresInDays !== undefined) {
+      expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString();
+    }
+  }
+
+  // Save to standard (hash null if no token)
+  await updateMcpToken(args.uid, args.standardId, hash, args.endpointPath, expiresAt, requireToken);
 
   // Denormalize to mcps collection
   await createOrUpdateMcp(args.uid, {
@@ -29,13 +52,16 @@ export const generateMcpToken = async (args: {
     token: hash,
     status: "active",
     usageCount: 0,
+    expiresAt,
+    requireToken,
   });
 
   return {
     endpoint: args.endpointPath,
     endpointFull: args.endpointFull,
     token,
-    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    expiresAt,
+    requireToken,
   };
 };
 

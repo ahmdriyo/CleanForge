@@ -1,5 +1,6 @@
-import { getMcpTokenFromHeader, verifyMcpJwt } from "@/server/auth/verify-mcp-token";
+import { getMcpTokenFromHeader, verifyMcpJwt, isExpired, hashToken } from "@/server/auth/verify-mcp-token";
 import { getMcpToolDefinitions, callMcpTool } from "@/server/service/mcp-service";
+import { adminDb } from "@/server/infra/firebase-admin";
 
 // Helper to create SSE response
 const createSseResponse = (data: unknown) => {
@@ -13,24 +14,80 @@ const createSseResponse = (data: unknown) => {
   });
 };
 
-export async function GET(req: Request, { params }: { params: Promise<{ uid: string; standardId: string }> }) {
-  const { uid, standardId } = await params;
+const checkMcpAccess = async (
+  uid: string,
+  standardId: string,
+  req: Request,
+): Promise<{ ok: true } | { ok: false; response: Response }> => {
+  // Load standard to check requireToken + expiresAt
+  const ref = adminDb.doc(`users/${uid}/standards/${standardId}`);
+  const doc = await ref.get();
+  if (!doc.exists) {
+    return {
+      ok: false,
+      response: Response.json({ success: false, message: "Standard not found" }, { status: 404 }),
+    };
+  }
+  const data = doc.data() as { mcpExpiresAt?: string | null; mcpRequireToken?: boolean; mcpToken?: string | null };
+  const expiresAt = data.mcpExpiresAt ?? null;
+  const requireToken = data.mcpRequireToken ?? false;
+
+  // Check expiry first
+  if (expiresAt && isExpired(expiresAt)) {
+    return {
+      ok: false,
+      response: Response.json({ success: false, message: "MCP endpoint expired — regenerate with new expiry" }, { status: 401 }),
+    };
+  }
+
+  if (!requireToken) {
+    // No token required — allow access
+    return { ok: true };
+  }
 
   const token = getMcpTokenFromHeader(req);
   if (!token) {
-    return new Response(JSON.stringify({ success: false, message: "Missing Authorization: Bearer <JWT>" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
+    return {
+      ok: false,
+      response: new Response(JSON.stringify({ success: false, message: "Missing Authorization: Bearer <JWT>" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      }),
+    };
   }
 
   const payload = await verifyMcpJwt(token);
   if (!payload || payload.uid !== uid || payload.standardId !== standardId) {
-    return new Response(JSON.stringify({ success: false, message: "Invalid or expired MCP token" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
+    return {
+      ok: false,
+      response: new Response(JSON.stringify({ success: false, message: "Invalid or expired MCP token" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      }),
+    };
   }
+  // Revocation check: token hash must match stored hash
+  const storedHash = data.mcpToken ?? null;
+  if (storedHash) {
+    const incomingHash = hashToken(token);
+    if (incomingHash !== storedHash) {
+      return {
+        ok: false,
+        response: new Response(JSON.stringify({ success: false, message: "MCP token revoked — regenerate required" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }),
+      };
+    }
+  }
+  return { ok: true };
+};
+
+export async function GET(req: Request, { params }: { params: Promise<{ uid: string; standardId: string }> }) {
+  const { uid, standardId } = await params;
+
+  const access = await checkMcpAccess(uid, standardId, req);
+  if (!access.ok) return access.response;
 
   const url = new URL(req.url);
 
@@ -55,15 +112,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ uid: str
 export async function POST(req: Request, { params }: { params: Promise<{ uid: string; standardId: string }> }) {
   const { uid, standardId } = await params;
 
-  const token = getMcpTokenFromHeader(req);
-  if (!token) {
-    return Response.json({ success: false, message: "Missing Authorization: Bearer <JWT>" }, { status: 401 });
-  }
-
-  const payload = await verifyMcpJwt(token);
-  if (!payload || payload.uid !== uid || payload.standardId !== standardId) {
-    return Response.json({ success: false, message: "Invalid or expired MCP token" }, { status: 401 });
-  }
+  const access = await checkMcpAccess(uid, standardId, req);
+  if (!access.ok) return access.response;
 
   try {
     const body = await req.json();

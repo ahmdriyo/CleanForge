@@ -53,7 +53,37 @@ export const deleteStandard = async (uid: string, id: string): Promise<boolean> 
   return true;
 };
 
-export const updateMcpToken = async (uid: string, standardId: string, hash: string, endpoint: string): Promise<void> => {
+export const updateMcpToken = async (
+  uid: string,
+  standardId: string,
+  hash: string | null,
+  endpoint: string,
+  expiresAt: string | null = null,
+  requireToken: boolean = false,
+): Promise<void> => {
   const ref = adminDb.doc(`${collectionPath(uid)}/${standardId}`);
-  await ref.update({ mcpToken: hash, mcpEndpoint: endpoint, updatedAt: new Date().toISOString() });
+  await ref.update({
+    mcpToken: hash,
+    mcpEndpoint: endpoint,
+    mcpExpiresAt: expiresAt,
+    mcpRequireToken: requireToken,
+    mcpStatus: "active",
+    updatedAt: new Date().toISOString(),
+  });
+};
+
+export const getMcpConfig = async (
+  uid: string,
+  standardId: string,
+): Promise<{ endpoint: string | null; expiresAt: string | null; requireToken: boolean; tokenHash: string | null } | null> => {
+  const doc = await adminDb.doc(`${collectionPath(uid)}/${standardId}`).get();
+  if (!doc.exists) return null;
+  const data = doc.data() as Standard & { mcpExpiresAt?: string | null; mcpRequireToken?: boolean; mcpToken?: string | null; mcpEndpoint?: string };
+  if (!data.mcpEndpoint) return null;
+  return {
+    endpoint: data.mcpEndpoint || null,
+    expiresAt: (data.mcpExpiresAt as string | null) ?? null,
+    requireToken: data.mcpRequireToken ?? false,
+    tokenHash: (data.mcpToken as string | null) ?? null,
+  };
 };

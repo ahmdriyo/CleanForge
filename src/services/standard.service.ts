@@ -52,17 +52,37 @@ export const StandardService = {
 
   generateMcp: async (
     id: string,
+    options?: { expiresInDays?: number | null; requireToken?: boolean },
   ): Promise<
     ApiResponse<{
       endpoint: string;
       endpointFull: string;
-      token: string;
-      expiresAt: string;
+      token: string | null;
+      expiresAt: string | null;
+      requireToken: boolean;
     }>
   > => {
-    const res = await baseApiToken.post(
-      `${RestEndpoint.PostGenerateMcp}/${id}/generate-mcp`,
-    );
+    const res = await baseApiToken.post(`${RestEndpoint.PostGenerateMcp}/${id}/generate-mcp`, options || {});
+    return res.data;
+  },
+
+  getMcpConfig: async (
+    id: string,
+  ): Promise<
+    ApiResponse<{
+      endpoint: string;
+      endpointFull: string;
+      expiresAt: string | null;
+      requireToken: boolean;
+      isExpired: boolean;
+      isActive: boolean;
+      hasToken: boolean;
+      status: string;
+      usageCount: number;
+      mcpId: string | null;
+    } | null>
+  > => {
+    const res = await baseApiToken.get(`${RestEndpoint.PostGenerateMcp}/${id}/generate-mcp`);
     return res.data;
   },
 

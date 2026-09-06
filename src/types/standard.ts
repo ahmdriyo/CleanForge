@@ -40,7 +40,9 @@ export interface Standard {
   };
   mcpStatus: "active" | "inactive" | "draft";
   mcpEndpoint: string;
-  mcpToken: string;
+  mcpToken: string | null;
+  mcpExpiresAt?: string | null;
+  mcpRequireToken?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -71,10 +73,14 @@ export interface McpEndpoint {
   standardId: string;
   standardName: string;
   endpoint: string;
-  token: string;
-  status: "active" | "inactive";
+  token: string | null;
+  status: "active" | "inactive" | "expired";
   usageCount: number;
   createdAt: string;
+  expiresAt?: string | null;
+  requireToken?: boolean;
+  lastUsedAt?: string | null;
+  updatedAt?: string;
 }
 
 export interface DocSection {
