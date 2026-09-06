@@ -101,11 +101,22 @@ export async function POST(req: Request) {
 
       const basePath = hasFeatures ? `${rootName}/features/${suggestedName}` : `${rootName}/${suggestedName}`;
       const keyNote = isKeyInvalid
-        ? "\n\n> ⚠️ Gemini API key is invalid or not configured (Secret Manager GEMINI_API_KEY). Showing offline fallback — set a valid AIza... key from https://aistudio.google.com to get real AI replies."
+        ? "\n\nNote: Gemini API key is invalid or not configured. Showing offline fallback. Set a valid AIza key from aistudio.google.com to get real AI replies."
         : "";
 
-      // More varied, context-aware reply
-      reply = `For **${reason}** in **${framework}** (${rootName}/), I recommend:\n\n**Path:** \`${basePath}\`\n- \`components/${suggestedName}-card.tsx\` — UI (kebab-case, Tailwind + shadcn, no data-fetch)\n- \`hooks/use-${suggestedName}.ts\` — data layer (TanStack Query, key: ["${suggestedName}"])\n- \`schemas/${suggestedName}-schema.ts\` — Zod validation\n\n**Rules from your standard:**\n- Naming: \`${standard.globalRules?.namingConvention || "kebab-case"}\`\n- Styling: \`${standard.globalRules?.styling || "Tailwind"}\`\n- Principles: \`${(standard.globalRules?.principles || []).join(", ") || "feature-based, isolated"}\`\n\nClick **"Apply to Standard"** to scaffold this now, or tell me more about the ${suggestedName} flow and I'll refine it.${keyNote}`;
+      reply = `Saran untuk ${reason} di ${framework} (${rootName}/):
+
+Path: ${basePath}
+1. components/${suggestedName}-card.tsx - UI, kebab-case, Tailwind dan shadcn, tanpa data fetch
+2. hooks/use-${suggestedName}.ts - data layer, TanStack Query, key ${suggestedName}
+3. schemas/${suggestedName}-schema.ts - validasi Zod
+
+Aturan standar:
+1. Naming: ${standard.globalRules?.namingConvention || "kebab-case"}
+2. Styling: ${standard.globalRules?.styling || "Tailwind"}
+3. Principles: ${(standard.globalRules?.principles || []).join(", ") || "feature-based, isolated"}
+
+Klik Apply to Standard untuk scaffold sekarang, atau jelaskan lebih detail tentang alur ${suggestedName} agar saya bisa perhalus.${keyNote}`;
     }
 
     const now = new Date().toISOString();

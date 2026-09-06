@@ -106,7 +106,16 @@ export const ChatPanel = ({
       if (last && last.length > 2) suggestedName = last;
     }
 
-    const reply = `**Offline fallback** — Gemini not reachable for this request.\n\nFor **${suggestedName}** (${hint || "general feature"}), I suggest:\n\n\`src/features/${suggestedName}/\`\n• \`components/${suggestedName}-card.tsx\` — UI (kebab-case, Tailwind)\n• \`hooks/use-${suggestedName}.ts\` — data (TanStack Query)\n• \`schemas/${suggestedName}-schema.ts\` — Zod\n\nClick **"Apply to Standard"** to scaffold it, or try again when Gemini is configured. For real AI replies, set a valid \`GEMINI_API_KEY\` (AIza...) in Secret Manager.`;
+    const reply = `Offline fallback - Gemini not reachable for this request.
+
+Saran untuk ${suggestedName} (${hint || "general feature"}):
+
+Path: src/features/${suggestedName}
+1. components/${suggestedName}-card.tsx - UI, kebab-case, Tailwind
+2. hooks/use-${suggestedName}.ts - data, TanStack Query
+3. schemas/${suggestedName}-schema.ts - Zod
+
+Klik Apply to Standard untuk scaffold, atau coba lagi setelah Gemini dikonfigurasi. Untuk balasan AI asli, set GEMINI_API_KEY yang valid di Secret Manager.`;
 
     const newAssistant = {
       id: `msg-${Date.now() + 1}`,

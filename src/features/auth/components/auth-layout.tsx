@@ -1,6 +1,6 @@
 "use client";
 
-import { Layers } from "lucide-react";
+import { Hammer } from "lucide-react";
 
 export const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -15,7 +15,7 @@ export const AuthLayout = ({ children }: { children: React.ReactNode }) => {
         {/* Top logo */}
         <div className="relative flex items-center gap-2 text-white/90">
           <div className="w-8 h-8 rounded-xl bg-white/15 backdrop-blur border border-white/20 flex items-center justify-center">
-            <Layers className="w-4 h-4 text-white" />
+            <Hammer className="w-5 h-5 text-white" />
           </div>
           <span className="font-semibold tracking-tight">CleanForge</span>
         </div>
