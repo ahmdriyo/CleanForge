@@ -178,7 +178,7 @@ export const FolderInspector = ({
   };
 
   return (
-    <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-[20px] p-4 h-full overflow-y-auto overflow-x-hidden space-y-4">
+    <div className="bg-white/65 backdrop-blur-xl border border-white/60 rounded-[20px] p-4 h-full overflow-y-auto overflow-x-hidden space-y-4 custom-scrollbar">
       <div className="flex items-center justify-between pb-2 border-b border-white/70">
         <div>
           <h3 className="font-semibold text-slate-900 text-sm">Inspector</h3>
@@ -261,7 +261,7 @@ export const FolderInspector = ({
           value={rules}
           onChange={(e) => setRules(e.target.value)}
           placeholder="e.g., Each feature in its own folder. No cross-feature imports."
-          className="bg-white/80 backdrop-blur border-white/70 rounded-xl min-h-17.5 text-xs focus-visible:ring-violet-500"
+          className="bg-white/80 backdrop-blur border-white/70 rounded-xl min-h-17.5 text-xs focus-visible:ring-violet-500 custom-scrollbar"
         />
       </div>
 
@@ -317,11 +317,11 @@ export const FolderInspector = ({
         <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
           Description
         </Label>
-        <Input
+        <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Short description of this directory"
-          className="bg-white/80 rounded-xl text-xs"
+          className="bg-white/80 rounded-xl text-xs custom-scrollbar"
         />
       </div>
 

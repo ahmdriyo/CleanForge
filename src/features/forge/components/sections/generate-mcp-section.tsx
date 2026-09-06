@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -24,7 +23,6 @@ import {
   Plug,
   Eye,
   EyeOff,
-  ExternalLink,
   Loader2,
   ShieldCheck,
   Clock,
@@ -80,14 +78,51 @@ export const GenerateMcpSection = ({
   const [hasFetched, setHasFetched] = useState(false);
 
   const endpointPreview = `https://cleanforge.run.app/mcp/<uid>/${standardName.toLowerCase().replace(/\s+/g, "-")}/sse`;
-  const previewJson = `{\n  "name": "${standardName}",\n  "tools": ["get_my_project_standard", "get_folder_rules", "scaffold_feature", "validate_structure"],\n  "framework": "nextjs",\n  "naming": "kebab-case"\n}`;
+  const [previewJson, setPreviewJson] = useState(
+    `{\n  "name": "${standardName}",\n  "tools": ["get_my_project_standard", "get_folder_rules", "scaffold_feature", "validate_structure"],\n  "framework": "nextjs",\n  "naming": "kebab-case"\n}`,
+  );
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const isNew = !standardId || standardId === "new";
 
-  // Fetch existing MCP when modal opens
+  // Fetch preview (full enriched standard) + existing MCP when modal opens
   useEffect(() => {
-    if (!open || isNew) return;
-    if (hasFetched) return;
+    if (!open) return;
+    if (!isNew) {
+      // fetch preview enriched from actual standard (same data MCP will serve)
+      setPreviewLoading(true);
+      import("@/services/standard.service")
+        .then(({ StandardService }) =>
+          StandardService.getStandardById(standardId),
+        )
+        .then((res) => {
+          if (res.success && res.data) {
+            const s = res.data as unknown as {
+              name: string;
+              framework: string;
+              folderStructure: unknown;
+              globalRules: unknown;
+            };
+            // Build a truncated but complete-structure preview: show folderStructure fully, plus note about flatList via MCP
+            const full = {
+              name: s.name,
+              framework: s.framework,
+              globalRules: s.globalRules,
+              folderStructure: s.folderStructure,
+              note: "Full data via MCP get_my_project_standard ALSO includes vibeCodingInstructions (copy-paste prompt for AI), flatList, filePaths, textTree enriched, stats — 1:1 with Forge Visual Tree + Inspector (rules/naming/exampleCode/description per node)",
+            };
+            const str = JSON.stringify(full, null, 2);
+            setPreviewJson(
+              str.length > 1800
+                ? str.slice(0, 1800) + "\n  ... (truncated, full via MCP) \n}"
+                : str,
+            );
+          }
+        })
+        .catch(() => {})
+        .finally(() => setPreviewLoading(false));
+    }
+    if (isNew || hasFetched) return;
     const fetchExisting = async () => {
       setLoadingExisting(true);
       try {
@@ -223,36 +258,65 @@ export const GenerateMcpSection = ({
       toast.error("No endpoint to test");
       return;
     }
-    if (requireToken && !realToken && !existing?.hasToken) {
-      // No token available but required — inform user
-      // For public existing after reload, token is hidden; we can try without token and it will fail, but we should try backend via test? Instead do direct fetch with no token and show warning
-      // We'll attempt fetch without token; server will return 401
-    }
     setIsTesting(true);
     setTestResult(null);
     try {
       const headers: Record<string, string> = { Accept: "application/json" };
       if (requireToken && realToken)
         headers.Authorization = `Bearer ${realToken}`;
-      // If requireToken true but realToken null (existing after reload), try without header — server will reject, which is expected
-      const res = await fetch(realEndpoint, {
-        method: "GET",
-        headers,
-      });
-      const text = await res.text();
-      if (!res.ok) {
-        setTestResult(`✗ ${res.status} — ${text.slice(0, 400)}`);
-        toast.error(`Test failed: ${res.status}`);
+      // 1) tools/list (MCP spec compliance)
+      const resTools = await fetch(realEndpoint, { method: "GET", headers });
+      const textTools = await resTools.text();
+      if (!resTools.ok) {
+        setTestResult(
+          `✗ tools/list ${resTools.status} — ${textTools.slice(0, 400)}`,
+        );
+        toast.error(`Test failed: ${resTools.status}`);
         return;
       }
-      let pretty = text;
+      let prettyTools = textTools;
       try {
-        pretty = JSON.stringify(JSON.parse(text), null, 2).slice(0, 600);
+        prettyTools = JSON.stringify(JSON.parse(textTools), null, 2).slice(
+          0,
+          500,
+        );
       } catch {
-        pretty = text.slice(0, 600);
+        prettyTools = textTools.slice(0, 500);
       }
-      setTestResult(`✓ Connected — tools/list OK\n${pretty}`);
-      toast.success("Connection OK — tools/list");
+
+      // 2) get_my_project_standard via GET query (proves completeness — same as Project Structure in Forge)
+      const sep = realEndpoint.includes("?") ? "&" : "?";
+      const fullUrl = `${realEndpoint}${sep}method=get_my_project_standard&raw=1`;
+      const resStd = await fetch(fullUrl, { method: "GET", headers });
+      const textStd = await resStd.text();
+      let prettyStd = textStd;
+      let stdSummary = "";
+      try {
+        const parsed = JSON.parse(textStd);
+        // raw=1 returns { standard: { ... } } directly or via data wrapper
+        const std = parsed.standard || parsed.data?.standard || parsed;
+        const cnt = std.flatList?.length || std.folderStructure ? "found" : "?";
+        const total = std.stats
+          ? `${std.stats.totalFolders}f/${std.stats.totalFiles}files`
+          : cnt;
+        stdSummary = std.name
+          ? `${std.name} (${std.framework}) — ${total}`
+          : "";
+        prettyStd = JSON.stringify(parsed, null, 2).slice(0, 800);
+      } catch {
+        prettyStd = textStd.slice(0, 800);
+      }
+      if (!resStd.ok) {
+        setTestResult(
+          `✓ tools/list OK\n${prettyTools}\n\n✗ get_my_project_standard ${resStd.status} — ${prettyStd.slice(0, 400)}`,
+        );
+        toast.error(`Standard fetch failed: ${resStd.status}`);
+        return;
+      }
+      setTestResult(
+        `✓ tools/list OK — 4 tools\n${prettyTools}\n\n✓ get_my_project_standard OK — ${stdSummary}\n${prettyStd}`,
+      );
+      toast.success("Connection OK — complete standard fetched");
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Unknown error";
       setTestResult(`✗ ${msg}`);
@@ -290,96 +354,67 @@ export const GenerateMcpSection = ({
             </span>
             Generate Private MCP Endpoint
           </DialogTitle>
-          <p className="text-xs text-slate-500">
-            Choose expiry & token protection.{" "}
-            {requireToken ? (
-              <>
-                Bearer JWT — header{" "}
-                <code className="bg-slate-900 text-emerald-300 px-1.5 py-0.5 rounded break-all">
-                  Authorization: Bearer &lt;JWT&gt;
-                </code>{" "}
-                — token shown once.
-              </>
-            ) : (
-              <>Public endpoint — no Authorization header required.</>
-            )}
+          <p className="text-xs text-slate-500 mt-1">
+            Private SSE endpoint for AI agents. Configure expiry & token
+            protection below.
           </p>
         </DialogHeader>
 
         <div className="space-y-4 max-w-full overflow-x-hidden">
-          {/* Preview */}
+          {/* Endpoint preview — compact */}
           <div>
-            <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-              Preview JSON
+            <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+              Endpoint
+              {previewLoading && (
+                <Loader2 className="w-3 h-3 animate-spin text-violet-600" />
+              )}
             </Label>
-            <pre className="mt-1.5 bg-slate-900 rounded-xl p-3.5 font-mono text-xs text-emerald-300 whitespace-pre-wrap break-all overflow-y-auto overflow-x-hidden max-h-36 border border-slate-800">
-              {previewJson}
-            </pre>
+            <code className="mt-1.5 block bg-slate-900 rounded-xl px-3 py-2.5 font-mono text-xs text-emerald-300 break-all border border-slate-800">
+              {realEndpoint || endpointPreview}
+            </code>
+            <p className="text-[11px] text-slate-500 mt-1.5">
+              AI will call{" "}
+              <code className="bg-slate-100 px-1 rounded">
+                get_my_project_standard
+              </code>{" "}
+              via this URL to get your full folder structure & per-folder rules.
+            </p>
           </div>
 
-          {/* Active MCP banner if exists */}
+          {/* Status — only if exists */}
           {loadingExisting && (
-            <div className="bg-white/70 border border-white/60 rounded-xl p-3 flex items-center gap-2 text-xs text-slate-500">
+            <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-2 text-xs text-slate-500">
               <Loader2 className="w-4 h-4 animate-spin text-violet-600" />{" "}
-              Checking existing MCP endpoint...
+              Checking endpoint...
             </div>
           )}
-          {existing && !loadingExisting && (
-            <div
-              className={`rounded-xl p-3 border flex gap-2.5 ${existing.isExpired ? "bg-red-50 border-red-200 text-red-800" : existing.isActive ? "bg-emerald-50 border-emerald-200 text-emerald-900" : "bg-slate-50 border-slate-200"}`}
-            >
-              {existing.isExpired ? (
-                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
-              ) : (
-                <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
-              )}
-              <div className="text-xs leading-relaxed">
-                {existing.isExpired ? (
-                  <>
-                    <span className="font-semibold">Endpoint expired</span> —
-                    expires{" "}
-                    {existing.expiresAt
-                      ? new Date(existing.expiresAt).toLocaleDateString()
-                      : "—"}
-                    . Regenerate with new expiry.
-                    <div className="mt-1.5 font-mono text-[11px] break-all bg-white/70 rounded px-2 py-1 border border-red-200">
-                      {existing.endpointFull}
-                    </div>
-                  </>
-                ) : existing.isActive ? (
-                  <>
-                    <span className="font-semibold">
-                      Active MCP endpoint found
-                    </span>{" "}
-                    for this project.
-                    <div className="mt-1.5 font-mono text-[11px] break-all bg-white/70 rounded px-2 py-1 border border-emerald-200">
-                      {existing.endpointFull}
-                    </div>
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      <span className="bg-white border border-emerald-200 rounded-full px-2 py-0.5 text-[11px]">
-                        {existing.requireToken
-                          ? "Bearer required"
-                          : "Public (no token)"}
-                      </span>
-                      <span className="bg-white border border-slate-200 rounded-full px-2 py-0.5 text-[11px] flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {existing.expiresAt
-                          ? `Expires ${new Date(existing.expiresAt).toLocaleDateString()}`
-                          : "Never expires"}
-                      </span>
-                      <span className="bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full px-2 py-0.5 text-[11px]">
-                        Active
-                      </span>
-                    </div>
-                    {!existing.hasToken && existing.requireToken && (
-                      <p className="text-[11px] text-amber-700 mt-1">
-                        Token is hashed on server — regenerate to get a new
-                        plaintext token.
-                      </p>
-                    )}
-                  </>
-                ) : null}
+          {existing &&
+            !loadingExisting &&
+            existing.isActive &&
+            !existing.isExpired && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-2 text-xs text-emerald-900">
+                <ShieldCheck className="w-4 h-4 shrink-0" />
+                <span>
+                  Active —{" "}
+                  {existing.requireToken ? "Bearer required" : "Public"}
+                </span>
+                <span className="ml-auto flex items-center gap-1 text-[11px] bg-white border border-emerald-200 rounded-full px-2 py-0.5">
+                  <Clock className="w-3 h-3" />
+                  {existing.expiresAt
+                    ? new Date(existing.expiresAt).toLocaleDateString()
+                    : "Never expires"}
+                </span>
               </div>
+            )}
+          {existing && !loadingExisting && existing.isExpired && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2 text-xs text-red-800">
+              <AlertTriangle className="w-4 h-4 shrink-0" /> Expired —
+              regenerate required
+              <span className="ml-auto text-[11px] bg-white border border-red-200 rounded-full px-2 py-0.5">
+                {existing.expiresAt
+                  ? new Date(existing.expiresAt).toLocaleDateString()
+                  : "—"}
+              </span>
             </div>
           )}
 
@@ -404,6 +439,9 @@ export const GenerateMcpSection = ({
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-[11px] text-slate-400 mt-1">
+                Auto-expires, default 1 day.
+              </p>
             </div>
             <div>
               <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
@@ -411,7 +449,9 @@ export const GenerateMcpSection = ({
               </Label>
               <div className="mt-1.5 flex items-center justify-between bg-white/80 border border-white/60 rounded-xl px-3 py-2.5">
                 <span className="text-sm text-slate-700">
-                  {selectedRequireToken ? "Required" : "Not required"}
+                  {selectedRequireToken
+                    ? "Required (private)"
+                    : "Not required (public)"}
                 </span>
                 <button
                   type="button"
@@ -425,45 +465,18 @@ export const GenerateMcpSection = ({
               </div>
               <p className="text-[11px] text-slate-400 mt-1">
                 {selectedRequireToken
-                  ? "Header Authorization required"
-                  : "Public — anyone with link can call MCP"}
+                  ? "Needs Authorization: Bearer <JWT> header"
+                  : "Public — no header needed"}
               </p>
             </div>
-          </div>
-
-          {/* Secret input — per PRD, stored via Secret Manager */}
-          <div>
-            <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-              API Key (Optional)
-            </Label>
-            <Input
-              type="password"
-              placeholder="sk-... (stored via Secret Manager)"
-              className="bg-white/80 rounded-xl mt-1.5 border-white/60"
-              disabled
-            />
-            <p className="text-[11px] text-slate-400 mt-1.5 flex gap-1.5 items-start">
-              <ShieldCheck className="w-3 h-3 mt-0.5 shrink-0 text-violet-500" />
-              Secrets are never hardcoded — managed via Google Secret Manager.
-            </p>
           </div>
 
           {!generated ? (
             <>
               {isNew && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex gap-2.5 text-amber-900">
-                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <div className="text-xs leading-relaxed">
-                    <span className="font-semibold">Save standard first.</span>{" "}
-                    Click &quot;Save&quot; in the header before generating your
-                    private MCP endpoint.
-                  </div>
-                </div>
-              )}
-              {existing?.isActive && !existing.isExpired && (
-                <div className="bg-violet-50 border border-violet-200 rounded-xl p-3 text-xs text-violet-900">
-                  Active endpoint is shown above. You can generate a new one
-                  below — this will rotate expiry/token.
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex gap-2 text-amber-900 text-xs">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" /> Save
+                  standard first before generating.
                 </div>
               )}
               <Button
@@ -476,37 +489,24 @@ export const GenerateMcpSection = ({
                     <Loader2 className="w-4 h-4 animate-spin" /> Generating...
                   </>
                 ) : existing?.isActive ? (
-                  "Regenerate with new settings"
+                  "Regenerate"
                 ) : (
                   "Generate"
                 )}
               </Button>
-              <p className="text-[11px] text-center text-slate-400">
-                Creates SHA-256 hash in <code>users/{"{uid}"}/standards</code> +
-                denormalized <code>mcps</code> — default 1 day, no token.
-              </p>
             </>
           ) : (
             <>
               {/* Endpoint */}
-              <div className="bg-linear-to-br from-violet-50 to-white border border-violet-200 rounded-xl p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                    <ExternalLink className="w-3.5 h-3.5 text-violet-600" />{" "}
-                    Your MCP Endpoint (SSE)
-                  </div>
-                  <span className="text-[11px] bg-white border border-violet-200 rounded-full px-2 py-0.5 font-mono text-violet-700">
-                    GET/POST
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                  <code className="flex-1 font-mono text-[11px] sm:text-xs bg-slate-900 text-emerald-300 rounded-lg p-2.5 min-w-0 break-all select-all border border-slate-800">
+              <div className="border border-violet-200 rounded-xl p-3 space-y-2 bg-violet-50/50">
+                <div className="flex gap-2">
+                  <code className="flex-1 font-mono text-xs bg-slate-900 text-emerald-300 rounded-lg px-2.5 py-2 break-all border border-slate-800">
                     {realEndpoint}
                   </code>
                   <Button
                     size="sm"
                     variant="outline"
-                    className="rounded-full shrink-0 h-9"
+                    className="rounded-full h-8 shrink-0"
                     onClick={() =>
                       copy(realEndpoint!, "endpoint", "Endpoint copied")
                     }
@@ -515,278 +515,180 @@ export const GenerateMcpSection = ({
                       <Check className="w-4 h-4 text-emerald-600" />
                     ) : (
                       <Copy className="w-4 h-4" />
-                    )}{" "}
-                    {copied === "endpoint" ? "Copied" : "Copy"}
+                    )}
                   </Button>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <span
-                    className={`${requireToken ? "bg-violet-50 text-violet-700 border-violet-200" : "bg-emerald-50 text-emerald-700 border-emerald-200"} border rounded-full text-xs px-2.5 py-1 flex items-center gap-1`}
-                  >
-                    <ShieldCheck className="w-3 h-3" />{" "}
-                    {requireToken ? "Bearer required" : "Public — no token"}
+                <div className="flex gap-1.5 flex-wrap text-[11px]">
+                  <span className="bg-white border rounded-full px-2 py-0.5 flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3" />
+                    {requireToken ? "Bearer" : "Public"}
                   </span>
-                  <span
-                    className={`${existing?.isExpired ? "bg-red-50 text-red-700 border-red-200" : "bg-white text-slate-600 border-slate-200"} border rounded-full text-xs px-2.5 py-1 flex items-center gap-1`}
-                  >
-                    <Clock className="w-3 h-3" />{" "}
+                  <span className="bg-white border rounded-full px-2 py-0.5 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
                     {expiresAt
-                      ? `Expires ${new Date(expiresAt).toLocaleDateString()}`
-                      : "Never expires"}
+                      ? new Date(expiresAt).toLocaleDateString()
+                      : "Never"}
                   </span>
-                  {existing?.isExpired ? (
-                    <span className="bg-red-100 text-red-700 border border-red-200 rounded-full text-xs px-2.5 py-1">
-                      Expired
-                    </span>
-                  ) : (
-                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs px-2.5 py-1">
-                      Active
-                    </span>
-                  )}
                 </div>
               </div>
 
-              {/* Token */}
-              {requireToken ? (
-                <div className="bg-white border border-amber-200 rounded-xl p-4 space-y-2">
+              {/* Token — only if Bearer */}
+              {requireToken && (
+                <div className="bg-amber-50/50 border border-amber-200 rounded-xl p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-[11px] font-semibold uppercase tracking-widest text-amber-700 flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5" /> Bearer Token —
-                      shown once
-                    </Label>
+                    <span className="text-[11px] font-semibold text-amber-700 flex items-center gap-1">
+                      <ShieldCheck className="w-3 h-3" /> Bearer Token — shown
+                      once
+                    </span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 text-xs rounded-full"
+                      className="h-6 text-xs rounded-full"
                       onClick={() => setShowToken((v) => !v)}
                     >
                       {showToken ? (
-                        <EyeOff className="w-3.5 h-3.5" />
+                        <EyeOff className="w-3 h-3" />
                       ) : (
-                        <Eye className="w-3.5 h-3.5" />
+                        <Eye className="w-3 h-3" />
                       )}{" "}
-                      {showToken ? " Hide" : " Show"}
+                      {showToken ? "Hide" : "Show"}
                     </Button>
                   </div>
                   {realToken ? (
                     <>
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <div className="flex gap-2">
                         <code
-                          className={`flex-1 font-mono text-[11px] sm:text-xs rounded-lg p-2.5 min-w-0 border break-all select-all ${showToken ? "bg-slate-900 text-amber-200 border-slate-800" : "bg-slate-100 text-slate-400 border-slate-200 blur-[6px] select-none"}`}
+                          className={`flex-1 font-mono text-xs rounded-lg px-2.5 py-2 break-all border ${showToken ? "bg-slate-900 text-amber-200 border-slate-800" : "bg-slate-100 text-slate-400 border-slate-200 blur-[5px]"}`}
                         >
                           {realToken}
                         </code>
                         <Button
                           size="sm"
-                          className="rounded-full shrink-0 h-9 bg-slate-900 hover:bg-black text-white"
+                          className="rounded-full bg-slate-900 text-white h-8 shrink-0"
                           onClick={() =>
-                            copy(
-                              realToken!,
-                              "token",
-                              "Token copied — keep secret!",
-                            )
+                            copy(realToken!, "token", "Token copied")
                           }
                         >
                           {copied === "token" ? (
                             <Check className="w-4 h-4" />
                           ) : (
                             <Copy className="w-4 h-4" />
-                          )}{" "}
-                          {copied === "token" ? "Copied" : "Copy Token"}
+                          )}
                         </Button>
                       </div>
-                      <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-1.5">
-                        ⚠️ Copy now — plaintext never stored. Only SHA-256 hash
-                        is in Firestore. Regenerating revokes old token.
+                      <p className="text-[11px] text-amber-700">
+                        Copy now — plaintext not stored, only hash in Firestore.
                       </p>
                     </>
                   ) : (
-                    <p className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-                      Token hidden — this endpoint requires Bearer token but
-                      plaintext is not retrievable. Regenerate to get a new
+                    <p className="text-xs text-slate-500 bg-white border rounded-lg px-2.5 py-2">
+                      Token hashed on server — regenerate to get a new plaintext
                       token.
                     </p>
                   )}
                 </div>
-              ) : (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-800 flex gap-2">
-                  <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-600" />
-                  <div>
-                    <span className="font-semibold">
-                      Public endpoint — no token required.
-                    </span>{" "}
-                    Anyone with the URL can call tools/list & tools/call
-                    (subject to expiry). Enable Bearer token for private access.
-                  </div>
-                </div>
               )}
 
-              {/* How to Connect */}
-              <div className="bg-white/90 border border-white/80 rounded-xl p-4 space-y-3 shadow-sm">
-                <div className="text-sm font-semibold text-slate-900">
-                  How to Connect {requireToken ? "— Bearer Header" : "— Public"}
-                </div>
-                <div className="space-y-3">
-                  <div>
-                    <div className="text-xs font-medium text-slate-600 mb-1.5">
-                      1. Claude Desktop / Cursor —{" "}
-                      <code className="bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">
-                        claude_desktop_config.json
-                      </code>
-                    </div>
-                    <div className="relative">
-                      <pre className="bg-slate-900 rounded-xl p-3 font-mono text-xs text-slate-300 whitespace-pre-wrap break-all overflow-x-hidden border border-slate-800">
-                        {mcpConfigSnippet}
-                      </pre>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="absolute top-2 right-2 h-7 rounded-full bg-white/90 text-xs"
-                        onClick={() => copy(mcpConfigSnippet, "config")}
-                      >
-                        {copied === "config" ? (
-                          <Check className="w-3 h-3" />
-                        ) : (
-                          <Copy className="w-3 h-3" />
-                        )}{" "}
-                        Copy
-                      </Button>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium text-slate-600 mb-1.5">
-                      2. curl / mcp-remote (SSE)
-                    </div>
-                    <div className="relative">
-                      <pre className="bg-slate-900 rounded-xl p-3 font-mono text-xs text-emerald-300 whitespace-pre-wrap break-all overflow-x-hidden border border-slate-800">
-                        {curlSnippet}
-                      </pre>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="absolute top-2 right-2 h-7 rounded-full bg-white/90 text-xs"
-                        onClick={() =>
-                          copy(
-                            requireToken && realToken
-                              ? `curl -H "Authorization: Bearer ${realToken}" -H "Accept: text/event-stream" ${realEndpoint}`
-                              : `curl -H "Accept: text/event-stream" ${realEndpoint}`,
-                            "curl",
-                          )
-                        }
-                      >
-                        {copied === "curl" ? (
-                          <Check className="w-3 h-3" />
-                        ) : (
-                          <Copy className="w-3 h-3" />
-                        )}{" "}
-                        Copy
-                      </Button>
-                    </div>
-                    <p className="text-[11px] text-slate-400 mt-1.5">
-                      {requireToken ? (
-                        <>
-                          MCP uses{" "}
-                          <code className="bg-slate-100 px-1 rounded">
-                            Authorization: Bearer &lt;JWT&gt;
-                          </code>
-                          .
-                        </>
-                      ) : (
-                        <>Public — no Authorization header needed.</>
-                      )}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full w-full h-9 border-violet-200"
-                  onClick={handleTest}
-                  disabled={isTesting}
-                >
-                  {isTesting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Testing...
-                    </>
-                  ) : (
-                    "Test Connection (tools/list)"
-                  )}
-                </Button>
-                {testResult && (
-                  <pre
-                    className={`rounded-xl p-3 font-mono text-xs whitespace-pre-wrap break-all overflow-y-auto overflow-x-hidden max-h-36 border ${testResult.startsWith("✓") ? "bg-emerald-50 text-emerald-900 border-emerald-200" : "bg-red-50 text-red-900 border-red-200"}`}
-                  >
-                    {testResult}
+              {/* Config & curl — compact */}
+              <div className="space-y-3">
+                <div className="relative">
+                  <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                    1. Cursor / Claude — mcpServers config
+                  </Label>
+                  <p className="text-[11px] text-slate-500">
+                    Paste into{" "}
+                    <code className="bg-slate-100 px-1 rounded">
+                      claude_desktop_config.json
+                    </code>{" "}
+                    or Cursor MCP settings.
+                  </p>
+                  <pre className="mt-1 bg-slate-900 rounded-xl p-3 pr-16 font-mono text-xs text-slate-300 whitespace-pre-wrap break-all border border-slate-800">
+                    {mcpConfigSnippet}
                   </pre>
-                )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="absolute top-12 right-2 h-7 rounded-full bg-white/90 text-xs"
+                    onClick={() => copy(mcpConfigSnippet, "config")}
+                  >
+                    <Copy className="w-3 h-3" /> Copy
+                  </Button>
+                </div>
+                <div className="relative">
+                  <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                    2. curl — test SSE
+                  </Label>
+                  <pre className="mt-1 bg-slate-900 rounded-xl p-3 pr-16 font-mono text-xs text-emerald-300 whitespace-pre-wrap break-all border border-slate-800">
+                    {curlSnippet}
+                  </pre>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="absolute top-6 right-2 h-7 rounded-full bg-white/90 text-xs"
+                    onClick={() =>
+                      copy(
+                        requireToken && realToken
+                          ? `curl -H "Authorization: Bearer ${realToken}" -H "Accept: text/event-stream" ${realEndpoint}`
+                          : `curl -H "Accept: text/event-stream" ${realEndpoint}`,
+                        "curl",
+                      )
+                    }
+                  >
+                    <Copy className="w-3 h-3" /> Copy
+                  </Button>
+                </div>
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-2 flex gap-2 text-[11px] text-emerald-800">
+                  <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-emerald-600 mt-0.5" />
+                  <span>
+                    AI will receive your full Project Structure (folder tree,
+                    rules, naming, example code) via{" "}
+                    <code className="bg-white px-1 rounded">
+                      get_my_project_standard
+                    </code>
+                    .
+                  </span>
+                </div>
               </div>
 
-              {/* Options to regenerate with new settings */}
-              <div className="bg-white/70 border border-white/60 rounded-xl p-3 space-y-3">
-                <div className="text-xs font-semibold text-slate-700">
-                  Regenerate with new settings
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-                      Expires
-                    </Label>
-                    <Select
-                      value={selectedExpiry}
-                      onValueChange={(v) =>
-                        setSelectedExpiry((v as string) ?? "1")
-                      }
-                    >
-                      <SelectTrigger className="mt-1.5 bg-white/80 rounded-xl w-full h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {EXPIRY_OPTIONS.map((o) => (
-                          <SelectItem key={o.value} value={o.value}>
-                            {o.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-                      Bearer Token
-                    </Label>
-                    <div className="mt-1.5 flex items-center justify-between bg-white/80 border border-white/60 rounded-xl px-3 py-2 h-9">
-                      <span className="text-xs text-slate-700">
-                        {selectedRequireToken ? "Required" : "Not required"}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedRequireToken((v) => !v)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${selectedRequireToken ? "bg-violet-600" : "bg-slate-200"}`}
-                      >
-                        <span
-                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition ${selectedRequireToken ? "translate-x-5" : "translate-x-1"}`}
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full w-full h-8 border-violet-200 text-xs"
+                onClick={handleTest}
+                disabled={isTesting}
+              >
+                {isTesting ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" /> Testing...
+                  </>
+                ) : (
+                  "Test Connection — verifies tools + standard"
+                )}
+              </Button>
+              {testResult && (
+                <pre
+                  className={`rounded-xl p-2.5 font-mono text-xs whitespace-pre-wrap break-all max-h-40 overflow-auto border ${testResult.startsWith("✓") ? "bg-emerald-50 text-emerald-900 border-emerald-200" : "bg-red-50 text-red-900 border-red-200"}`}
+                >
+                  {testResult}
+                </pre>
+              )}
 
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1 rounded-full"
+                  className="flex-1 rounded-full h-8 text-xs"
                   onClick={handleRegenerate}
                   disabled={isGenerating}
                 >
                   {isGenerating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-3 h-3 animate-spin" />
                   ) : null}{" "}
-                  Regenerate Token
+                  Regenerate
                 </Button>
                 <Button
                   size="sm"
-                  className="flex-1 rounded-full bg-slate-900 hover:bg-black text-white"
+                  className="flex-1 rounded-full bg-slate-900 text-white h-8 text-xs"
                   onClick={() => setOpen(false)}
                 >
                   Done

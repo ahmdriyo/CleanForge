@@ -1,10 +1,10 @@
 "use client";
 
 import { TemplateService } from "@/services/template.service";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Layers } from "lucide-react";
+import { Layers, Loader2 } from "lucide-react";
 import {
   SiNextdotjs,
   SiNestjs,
@@ -20,6 +20,10 @@ import {
 import { FaGolang } from "react-icons/fa6";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { StandardService } from "@/services/standard.service";
+import { getFrameworkTemplate } from "@/const/framework-templates";
+import { STANDARD_QUERY_KEYS } from "@/hooks/use-standards";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   nextjs: SiNextdotjs,
@@ -37,6 +41,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export const TemplateGridSection = () => {
+  const queryClient = useQueryClient();
   const { data } = useQuery({
     queryKey: ["templates"],
     queryFn: async () => {
@@ -47,10 +52,42 @@ export const TemplateGridSection = () => {
     },
   });
   const router = useRouter();
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
-  const handleUse = (id: string) => {
-    toast.success(`Cloned template ${id} (dummy) — Redirecting to Forge`);
-    router.push(`/forge/${id}`);
+  const handleUse = async (id: string) => {
+    const tpl = data?.find((t) => t.id === id);
+    if (!tpl) {
+      toast.error("Template not found");
+      return;
+    }
+    setLoadingId(id);
+    try {
+      const frameworkOpt = getFrameworkTemplate(tpl.icon);
+      const payload = {
+        name: tpl.name,
+        framework: frameworkOpt.id,
+        description: tpl.description,
+        folderStructure: tpl.folderStructure,
+        globalRules: frameworkOpt.defaultRules,
+      };
+      const res = await StandardService.postStandard(payload as unknown as Partial<import("@/types/standard").Standard>);
+      if (!res.success || !res.data?.id) {
+        throw new Error(res.message || "Failed to clone template");
+      }
+      toast.success(`Template "${tpl.name}" cloned — opening Forge`);
+      queryClient.invalidateQueries({ queryKey: STANDARD_QUERY_KEYS.all });
+      router.push(`/forge/${res.data.id}`);
+    } catch (e: unknown) {
+      const msg =
+        e instanceof Error
+          ? e.message
+          : typeof e === "object" && e !== null && "response" in e
+            ? ((e as { response?: { data?: { message?: string } } }).response?.data?.message ?? "Failed to clone template")
+            : "Failed to clone template";
+      toast.error(msg);
+    } finally {
+      setLoadingId(null);
+    }
   };
 
   return (
@@ -84,10 +121,17 @@ export const TemplateGridSection = () => {
               <div className="text-xs text-slate-400 mt-2">{tpl.rules}</div>
             </div>
             <Button
-              className="mt-4 w-full rounded-full bg-violet-600 hover:bg-violet-700"
+              className="mt-4 w-full rounded-full bg-violet-600 hover:bg-violet-700 disabled:opacity-60"
               onClick={() => handleUse(tpl.id)}
+              disabled={loadingId === tpl.id}
             >
-              Use Template
+              {loadingId === tpl.id ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Cloning...
+                </>
+              ) : (
+                "Use Template"
+              )}
             </Button>
           </div>
         );

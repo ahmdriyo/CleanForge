@@ -358,7 +358,7 @@ export const VisualTree = ({
 
   return (
     <div
-      className="bg-white/75 backdrop-blur-xl border border-white/60 rounded-[20px] p-4 h-full overflow-y-auto overflow-x-hidden flex flex-col"
+      className="bg-white/75 backdrop-blur-xl border border-white/60 rounded-[20px] p-4 h-full overflow-y-auto overflow-x-hidden flex flex-col custom-scrollbar"
       onDragOver={handleDragOverRoot}
       onDrop={handleDropRoot}
       onDragEnter={() => setDraggedId(null)}
@@ -455,7 +455,7 @@ export const VisualTree = ({
       </div>
 
       <div
-        className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden"
+        className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden custom-scrollbar"
         onDragOver={(e) => setDraggedId(null)}
       >
         <TreeNode
