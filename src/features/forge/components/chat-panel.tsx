@@ -3,10 +3,11 @@
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Sparkles, Loader2 } from "lucide-react";
+import { Send, Sparkles, Loader2, AlertTriangle, Save } from "lucide-react";
 import { useChat } from "@/hooks/use-chat";
 import { useJournals } from "@/hooks/use-journals";
 import type { ChatMessage } from "@/types/standard";
+import { toast } from "sonner";
 
 export const ChatPanel = ({
   onApply,
@@ -20,6 +21,7 @@ export const ChatPanel = ({
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const chatMutation = useChat();
+  const isNew = !standardId || standardId === "new";
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -41,6 +43,10 @@ export const ChatPanel = ({
   }, [messages, isSending]);
 
   const handleSend = async () => {
+    if (isNew) {
+      toast.error("Save your standard first to enable Gemini Consultant");
+      return;
+    }
     if (!input.trim() || isSending) return;
     const currentInput = input.trim();
     const newUser = {
@@ -82,33 +88,68 @@ export const ChatPanel = ({
     const lower = currentInput.toLowerCase();
     let suggestedName = "feature-module";
     let hint = "";
-    if (lower.includes("pay") || lower.includes("stripe") || lower.includes("billing")) {
+    if (
+      lower.includes("pay") ||
+      lower.includes("stripe") ||
+      lower.includes("billing")
+    ) {
       suggestedName = "payment";
       hint = "Payment flow — consider Stripe intents + idempotent webhooks.";
-    } else if (lower.includes("user") || lower.includes("profile") || lower.includes("account")) {
+    } else if (
+      lower.includes("user") ||
+      lower.includes("profile") ||
+      lower.includes("account")
+    ) {
       suggestedName = "user-profile";
       hint = "User profile — avatar upload + Zod profile schema.";
-    } else if (lower.includes("auth") || lower.includes("login") || lower.includes("register")) {
+    } else if (
+      lower.includes("auth") ||
+      lower.includes("login") ||
+      lower.includes("register")
+    ) {
       suggestedName = "auth";
       hint = "Auth — JWT + Firebase Auth guard + Zod.";
-    } else if (lower.includes("order") || lower.includes("cart") || lower.includes("checkout")) {
+    } else if (
+      lower.includes("order") ||
+      lower.includes("cart") ||
+      lower.includes("checkout")
+    ) {
       suggestedName = "checkout";
       hint = "Checkout — cart state (Zustand) + order validation.";
-    } else if (lower.includes("analytic") || lower.includes("metric") || lower.includes("stat") || lower.includes("dashboard")) {
+    } else if (
+      lower.includes("analytic") ||
+      lower.includes("metric") ||
+      lower.includes("stat") ||
+      lower.includes("dashboard")
+    ) {
       suggestedName = "analytics";
       hint = "Analytics — charts + TanStack Query.";
-    } else if (lower.includes("notif") || lower.includes("chat") || lower.includes("message")) {
+    } else if (
+      lower.includes("notif") ||
+      lower.includes("chat") ||
+      lower.includes("message")
+    ) {
       suggestedName = "notifications";
       hint = "Notifications — realtime (Firestore) + toast.";
     } else {
-      const words = currentInput.split(/\s+/).filter((w) => w.length > 3 && !["please", "could", "would", "create", "build", "make"].includes(w.toLowerCase()));
-      const last = words[words.length - 1]?.replace(/[^a-z0-9-]/gi, "").toLowerCase();
+      const words = currentInput
+        .split(/\s+/)
+        .filter(
+          (w) =>
+            w.length > 3 &&
+            !["please", "could", "would", "create", "build", "make"].includes(
+              w.toLowerCase(),
+            ),
+        );
+      const last = words[words.length - 1]
+        ?.replace(/[^a-z0-9-]/gi, "")
+        .toLowerCase();
       if (last && last.length > 2) suggestedName = last;
     }
 
     const reply = `Offline fallback - Gemini not reachable for this request.
 
-Saran untuk ${suggestedName} (${hint || "general feature"}):
+Suggestions for ${suggestedName} (${hint || "general feature"}):
 
 Path: src/features/${suggestedName}
 1. components/${suggestedName}-card.tsx - UI, kebab-case, Tailwind
@@ -136,6 +177,10 @@ Klik Apply to Standard untuk scaffold, atau coba lagi setelah Gemini dikonfigura
   };
 
   const handleTemplateClick = (text: string) => {
+    if (isNew) {
+      toast.error("Save your standard first — Gemini Consultant is disabled until you save");
+      return;
+    }
     if (isSending) return;
     setInput(text);
     // auto-send after setting input
@@ -178,7 +223,7 @@ Klik Apply to Standard untuk scaffold, atau coba lagi setelah Gemini dikonfigura
               {
                 id: `msg-${Date.now() + 1}`,
                 role: "assistant" as const,
-                content: `Saran untuk ${suggestedName}:\nPath: src/features/${suggestedName}\n1. components/${suggestedName}-card.tsx\n2. hooks/use-${suggestedName}.ts\n3. schemas/${suggestedName}-schema.ts\n\nKlik Apply to Standard untuk scaffold.`,
+                content: `Suggestions for ${suggestedName}:\nPath: src/features/${suggestedName}\n1. components/${suggestedName}-card.tsx\n2. hooks/use-${suggestedName}.ts\n3. schemas/${suggestedName}-schema.ts\n\nKlik Apply to Standard untuk scaffold.`,
                 timestamp: new Date().toISOString(),
                 hasApply: true,
               },
@@ -193,7 +238,7 @@ Klik Apply to Standard untuk scaffold, atau coba lagi setelah Gemini dikonfigura
           {
             id: `msg-${Date.now() + 1}`,
             role: "assistant" as const,
-            content: `Saran untuk ${text.slice(0, 30)}:\nPath: src/features/feature-module\n1. components/feature-module-card.tsx\n2. hooks/use-feature-module.ts\n3. schemas/feature-module-schema.ts`,
+            content: `Suggestions for ${text.slice(0, 30)}:\nPath: src/features/feature-module\n1. components/feature-module-card.tsx\n2. hooks/use-feature-module.ts\n3. schemas/feature-module-schema.ts`,
             timestamp: new Date().toISOString(),
             hasApply: true,
           },
@@ -222,7 +267,29 @@ Klik Apply to Standard untuk scaffold, atau coba lagi setelah Gemini dikonfigura
             Gemini Consultant
           </span>
         </div>
+        {isNew && (
+          <span className="text-[11px] px-2 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
+            <AlertTriangle className="w-3 h-3" /> Save required
+          </span>
+        )}
       </div>
+
+      {/* Validation banner — only when not saved */}
+      {isNew && (
+        <div className="mx-3 mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200 flex gap-2.5 shrink-0">
+          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-xs leading-relaxed text-amber-900">
+            <p className="font-semibold">Save your standard first</p>
+            <p className="text-amber-800 mt-0.5">
+              Gemini Consultant is disabled until you save your project. Click
+              <span className="inline-flex items-center gap-1 mx-1 px-1.5 py-0.5 rounded bg-white border border-amber-200 text-amber-700">
+                <Save className="w-3 h-3" /> Save Standard
+              </span>
+              in the header to enable chat.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div
         ref={messagesContainerRef}
@@ -267,22 +334,34 @@ Klik Apply to Standard untuk scaffold, atau coba lagi setelah Gemini dikonfigura
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message templates — clickable to auto-send */}
+      {/* Message templates — clickable to auto-send (disabled until saved) */}
       {messages.length === 0 && !isSending && (
         <div className="px-3 pb-2 shrink-0">
-          <p className="text-[11px] font-medium text-slate-500 mb-1.5">Try asking:</p>
+          <p className="text-[11px] font-medium text-slate-500 mb-1.5">
+            Try asking:
+          </p>
           <div className="flex flex-wrap gap-1.5">
             {MESSAGE_TEMPLATES.map((t) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => handleTemplateClick(t)}
-                className="text-[11px] px-2.5 py-1 rounded-full bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 transition text-left leading-tight"
+                disabled={isNew}
+                className={`text-[11px] px-2.5 py-1 rounded-full border transition text-left leading-tight ${
+                  isNew
+                    ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+                    : "bg-violet-50 hover:bg-violet-100 text-violet-700 border-violet-200"
+                }`}
               >
                 {t}
               </button>
             ))}
           </div>
+          {isNew && (
+            <p className="text-[11px] text-amber-600 mt-1.5 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3" /> Save standard to enable templates
+            </p>
+          )}
         </div>
       )}
 
@@ -290,13 +369,17 @@ Klik Apply to Standard untuk scaffold, atau coba lagi setelah Gemini dikonfigura
         <div className="bg-white/85 backdrop-blur border border-white/70 rounded-2xl p-2 flex flex-col gap-1.5 shadow-xs focus-within:border-violet-300 focus-within:ring-1 focus-within:ring-violet-300 transition-all">
           <Textarea
             ref={textareaRef}
-            placeholder="Ask Gemini about your architecture structure... (Enter to send, Shift+Enter for new line)"
+            placeholder={
+              isNew
+                ? "Save your standard first to enable chat..."
+                : "Ask Gemini about your architecture structure... (Enter to send, Shift+Enter for new line)"
+            }
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={isSending}
+            disabled={isSending || isNew}
             rows={2}
-            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-slate-400 text-xs sm:text-sm p-1 resize-none custom-scrollbar min-h-12 max-h-32"
+            className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-slate-400 text-xs sm:text-sm p-1 resize-none custom-scrollbar min-h-12 max-h-32 disabled:opacity-60"
           />
           <div className="flex items-center justify-between pt-1 border-t border-slate-100">
             <span className="text-[10px] text-slate-400 px-1">
@@ -308,8 +391,8 @@ Klik Apply to Standard untuk scaffold, atau coba lagi setelah Gemini dikonfigura
             </span>
             <Button
               size="sm"
-              disabled={isSending || !input.trim()}
-              className="rounded-full bg-violet-600 hover:bg-violet-700 text-white h-7 px-3 text-xs gap-1.5"
+              disabled={isSending || isNew || !input.trim()}
+              className="rounded-full bg-violet-600 hover:bg-violet-700 text-white h-7 px-3 text-xs gap-1.5 disabled:opacity-50"
               onClick={handleSend}
             >
               {isSending ? (

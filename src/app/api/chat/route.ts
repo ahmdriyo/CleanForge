@@ -55,35 +55,68 @@ export async function POST(req: Request) {
         standardContext: standard.folderStructure,
       });
     } catch (geminiError: unknown) {
-      const errMsg = geminiError instanceof Error ? geminiError.message : String(geminiError);
-      const isKeyInvalid = errMsg.includes("API_KEY_INVALID") || errMsg.includes("API key not valid");
+      const errMsg =
+        geminiError instanceof Error
+          ? geminiError.message
+          : String(geminiError);
+      const isKeyInvalid =
+        errMsg.includes("API_KEY_INVALID") ||
+        errMsg.includes("API key not valid");
       console.warn("Gemini service failed, using enhanced fallback:", errMsg);
 
       // Enhanced fallback that still uses the real standard context (not just keyword matching)
       const lower = message.toLowerCase();
       const framework = standard.framework || "nextjs";
       const rootName = standard.folderStructure?.name || "src";
-      const hasFeatures = JSON.stringify(standard.folderStructure).includes("features");
+      const hasFeatures = JSON.stringify(standard.folderStructure).includes(
+        "features",
+      );
 
       let suggestedName = "feature-module";
       let reason = "general feature";
 
-      if (lower.includes("pay") || lower.includes("stripe") || lower.includes("billing")) {
+      if (
+        lower.includes("pay") ||
+        lower.includes("stripe") ||
+        lower.includes("billing")
+      ) {
         suggestedName = "payment";
         reason = "payment/billing flow";
-      } else if (lower.includes("user") || lower.includes("profile") || lower.includes("account")) {
+      } else if (
+        lower.includes("user") ||
+        lower.includes("profile") ||
+        lower.includes("account")
+      ) {
         suggestedName = "user-profile";
         reason = "user management";
-      } else if (lower.includes("auth") || lower.includes("login") || lower.includes("register") || lower.includes("session")) {
+      } else if (
+        lower.includes("auth") ||
+        lower.includes("login") ||
+        lower.includes("register") ||
+        lower.includes("session")
+      ) {
         suggestedName = "auth";
         reason = "authentication";
-      } else if (lower.includes("order") || lower.includes("cart") || lower.includes("checkout")) {
+      } else if (
+        lower.includes("order") ||
+        lower.includes("cart") ||
+        lower.includes("checkout")
+      ) {
         suggestedName = "checkout";
         reason = "order processing";
-      } else if (lower.includes("analytic") || lower.includes("metric") || lower.includes("stat") || lower.includes("dashboard")) {
+      } else if (
+        lower.includes("analytic") ||
+        lower.includes("metric") ||
+        lower.includes("stat") ||
+        lower.includes("dashboard")
+      ) {
         suggestedName = "analytics";
         reason = "data visualization";
-      } else if (lower.includes("notif") || lower.includes("message") || lower.includes("chat")) {
+      } else if (
+        lower.includes("notif") ||
+        lower.includes("message") ||
+        lower.includes("chat")
+      ) {
         suggestedName = "notifications";
         reason = "messaging";
       } else if (lower.includes("setting") || lower.includes("config")) {
@@ -91,20 +124,39 @@ export async function POST(req: Request) {
         reason = "configuration";
       } else {
         // Use last meaningful word, but make it more natural
-        const words = message.split(/\s+/).filter((w) => w.length > 3 && !["please", "could", "would", "should", "create", "build", "make", "add"].includes(w.toLowerCase()));
-        const lastWord = words[words.length - 1]?.replace(/[^a-z0-9-]/gi, "").toLowerCase();
+        const words = message
+          .split(/\s+/)
+          .filter(
+            (w) =>
+              w.length > 3 &&
+              ![
+                "please",
+                "could",
+                "would",
+                "should",
+                "create",
+                "build",
+                "make",
+                "add",
+              ].includes(w.toLowerCase()),
+          );
+        const lastWord = words[words.length - 1]
+          ?.replace(/[^a-z0-9-]/gi, "")
+          .toLowerCase();
         if (lastWord && lastWord.length > 2) {
           suggestedName = lastWord;
           reason = lastWord;
         }
       }
 
-      const basePath = hasFeatures ? `${rootName}/features/${suggestedName}` : `${rootName}/${suggestedName}`;
+      const basePath = hasFeatures
+        ? `${rootName}/features/${suggestedName}`
+        : `${rootName}/${suggestedName}`;
       const keyNote = isKeyInvalid
         ? "\n\nNote: Gemini API key is invalid or not configured. Showing offline fallback. Set a valid AIza key from aistudio.google.com to get real AI replies."
         : "";
 
-      reply = `Saran untuk ${reason} di ${framework} (${rootName}/):
+      reply = `Suggestions for ${reason} di ${framework} (${rootName}/):
 
 Path: ${basePath}
 1. components/${suggestedName}-card.tsx - UI, kebab-case, Tailwind dan shadcn, tanpa data fetch
