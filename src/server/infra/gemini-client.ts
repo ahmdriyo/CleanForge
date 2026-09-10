@@ -68,4 +68,7 @@ Formatting rules - very important:
 - For file paths, write them as plain text like src/features/payment/components/payment-card.tsx
 - Keep it neat, clean, and easy to read
 
-Always respond in English.`;
+Language rule - very important:
+- Always respond in the same language as the user's last message
+- If user writes in English, respond in English. If user writes in Indonesian, respond in Indonesian.
+- Auto-detect from the prompt. Default to English if language is unclear.`;

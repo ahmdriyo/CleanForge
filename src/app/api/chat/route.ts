@@ -71,6 +71,9 @@ export async function POST(req: Request) {
       const hasFeatures = JSON.stringify(standard.folderStructure).includes(
         "features",
       );
+      // Detect language of user prompt
+      const isIndonesian = /(\b(buatkan|buat|tolong|bantu|saya|aku|kamu|kita|bagaimana|apa|jelaskan|untuk|dengan|yang|adalah|di|ke|dari|ini|itu|akan|bisa|mau|ingin|tolong)\b)/i.test(lower);
+      const lang = isIndonesian ? "id" : "en";
 
       let suggestedName = "feature-module";
       let reason = "general feature";
@@ -152,11 +155,14 @@ export async function POST(req: Request) {
       const basePath = hasFeatures
         ? `${rootName}/features/${suggestedName}`
         : `${rootName}/${suggestedName}`;
-      const keyNote = isKeyInvalid
-        ? "\n\nNote: Gemini API key is invalid or not configured. Showing offline fallback. Set a valid AIza key from aistudio.google.com to get real AI replies."
-        : "";
+      const keyNoteEn =
+        "\n\nNote: Gemini API key is invalid or not configured. Showing offline fallback. Set a valid AIza key from aistudio.google.com to get real AI replies.";
+      const keyNoteId =
+        "\n\nCatatan: Gemini API key tidak valid atau belum dikonfigurasi. Menampilkan fallback offline. Set key AIza yang valid dari aistudio.google.com untuk balasan AI asli.";
+      const keyNote = isKeyInvalid ? (lang === "id" ? keyNoteId : keyNoteEn) : "";
 
-      reply = `Suggestions for ${reason} di ${framework} (${rootName}/):
+      if (lang === "id") {
+        reply = `Saran untuk ${reason} di ${framework} (${rootName}/):
 
 Path: ${basePath}
 1. components/${suggestedName}-card.tsx - UI, kebab-case, Tailwind dan shadcn, tanpa data fetch
@@ -169,6 +175,21 @@ Aturan standar:
 3. Principles: ${(standard.globalRules?.principles || []).join(", ") || "feature-based, isolated"}
 
 Klik Apply to Standard untuk scaffold sekarang, atau jelaskan lebih detail tentang alur ${suggestedName} agar saya bisa perhalus.${keyNote}`;
+      } else {
+        reply = `Suggestion for ${reason} in ${framework} (${rootName}/):
+
+Path: ${basePath}
+1. components/${suggestedName}-card.tsx - UI, kebab-case, Tailwind and shadcn
+2. hooks/use-${suggestedName}.ts - data layer, TanStack Query, key ${suggestedName}
+3. schemas/${suggestedName}-schema.ts - Zod validation
+
+Standard rules:
+1. Naming: ${standard.globalRules?.namingConvention || "kebab-case"}
+2. Styling: ${standard.globalRules?.styling || "Tailwind"}
+3. Principles: ${(standard.globalRules?.principles || []).join(", ") || "feature-based, isolated"}
+
+Click Apply to Standard to scaffold now, or tell me more about the ${suggestedName} flow and I will refine it.${keyNote}`;
+      }
     }
 
     const now = new Date().toISOString();
